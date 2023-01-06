@@ -1,5 +1,7 @@
 
 
+### [2.1.2](https://github.com/Fllorent0D/Top-6-v2/compare/2.1.0...2.1.2) (2023-01-06)
+
 ## [2.1.0](https://github.com/Fllorent0D/Top-6-v2/compare/0.0.0...2.1.0) (2023-01-06)
 
 
