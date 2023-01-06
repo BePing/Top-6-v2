@@ -1,6 +1,6 @@
 {
   "name": "top-6",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Process which compute top 6.",
   "private": true,
   "engines": {
