@@ -1,5 +1,12 @@
 
 
+### [2.1.5](https://github.com/Fllorent0D/Top-6-v2/compare/2.1.4...2.1.5) (2023-01-07)
+
+
+### Chores
+
+* add chore to changelog ([3ca15fe](https://github.com/Fllorent0D/Top-6-v2/commit/3ca15fece47c79b66320e2bd28ffa4db49b206fa))
+
 ### [2.1.4](https://github.com/Fllorent0D/Top-6-v2/compare/2.1.3...2.1.4) (2023-01-07)
 
 ### [2.1.3](https://github.com/Fllorent0D/Top-6-v2/compare/2.1.2...2.1.3) (2023-01-06)
