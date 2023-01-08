@@ -31,6 +31,18 @@ export class CommandConfigurationService {
       postToFacebook: {
         type: Boolean,
         default: false
+      },
+      facebookPageId: {
+        type: String,
+        default: ''
+      },
+      facebookPageAccessToken: {
+        type: String,
+        default: ''
+      },
+      googleJSONCredentialsPath: {
+        type: String,
+        default: ''
       }
     });
   }
@@ -55,6 +67,10 @@ export class CommandConfigurationService {
     this.parsed.flags.uploadToFirebase = upload;
   }
 
+  get googleCredentialsJSONPath(): string {
+    return this.parsed.flags.googleJSONCredentialsPath;
+  }
+
   get emails(): string[] {
     return this.parsed.flags.emails;
   }
@@ -66,5 +82,14 @@ export class CommandConfigurationService {
   set postToFacebook(post: boolean) {
     this.parsed.flags.postToFacebook = post;
   }
+
+  get facebookPageId(): string {
+    return this.parsed.flags.facebookPageId;
+  }
+
+  get facebookPageAccessToken(): string {
+    return this.parsed.flags.facebookPageAccessToken;
+  }
+
 
 }

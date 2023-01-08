@@ -169,7 +169,7 @@ export class ConfigurationService {
 
   private async loadGoogleServiceAccountCredentials() {
     this._loggingService.debug('GOOGLE SERVICE ACCOUNT')
-    const pathToFile = process.env.GOOGLE_SERVICE_ACCOUNT_JSON_CREDENTIALS;
+    const pathToFile = this.runtimeConfiguration.googleCredentialsJSONPath;
     if (!pathToFile) {
       this._loggingService.error('Google service account information not found!');
       this._loggingService.trace('Disabling upload to firebase');
@@ -188,16 +188,17 @@ export class ConfigurationService {
 
   private async loadFacebookAPIKey() {
     this._loggingService.debug('FACEBOOK CREDENTIALS')
-    if (!process.env.FACEBOOK_PAGE_ID || !process.env.FACEBOOK_API_TOKEN) {
-      this._loggingService.error('Facebook credentials not found!');
-      this._loggingService.trace('Disabling facebook posting');
-      this.runtimeConfiguration.postToFacebook = false;
+    if (!this.runtimeConfiguration.facebookPageId || !this.runtimeConfiguration.facebookPageAccessToken) {
+        this._loggingService.error('Facebook credentials not found!');
+        this._loggingService.trace('Disabling facebook posting');
+        this.runtimeConfiguration.postToFacebook = false;
+        return;
     }
     this._configuration.facebook = {
-      pageId: process.env.FACEBOOK_PAGE_ID,
-      apiKey: process.env.FACEBOOK_API_TOKEN
+      pageId: this.runtimeConfiguration.facebookPageId,
+      apiKey: this.runtimeConfiguration.facebookPageAccessToken
     }
-    this._loggingService.trace('Facebook API key loaded from env')
+    this._loggingService.trace('Facebook API key loaded from cmd line');
 
   }
 }
