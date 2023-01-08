@@ -1,5 +1,12 @@
 
 
+## [2.2.0](https://github.com/Fllorent0D/Top-6-v2/compare/2.1.5...2.2.0) (2023-01-08)
+
+
+### Features
+
+* move the env vars to cmd line var. Easier for cron jobs ([2c87eec](https://github.com/Fllorent0D/Top-6-v2/commit/2c87eecc4fa4ebd5265e16b83323c10a697feade))
+
 ### [2.1.5](https://github.com/Fllorent0D/Top-6-v2/compare/2.1.4...2.1.5) (2023-01-07)
 
 
