@@ -9,6 +9,7 @@ import {ConsolidateTopService} from "../../processing/top/4-consolidate-tops/con
 import {
   WeeklyMatchesSummaryProcessingService
 } from "../../processing/weekly-matches-summary/weekly-matches-summary-processing-service";
+import {DivisionsMatchesIngestionService} from '../../ingestion/divisions-matches/divisions-matches-ingestion-service';
 
 @Service()
 export class DebugDigestionService implements DigestingServiceContract {
@@ -18,6 +19,7 @@ export class DebugDigestionService implements DigestingServiceContract {
     private readonly levelAttributionService: LevelAttributionService,
     private readonly sumPointsService: SumPointsService,
     private readonly consolidateTopService: ConsolidateTopService,
+    private readonly divisionsMatchesIngestionService: DivisionsMatchesIngestionService,
     private readonly configurationService: ConfigurationService,
     private readonly fileSystemHelper: FileSystemHelper,
     private readonly logging: LoggingService) {
@@ -31,6 +33,7 @@ export class DebugDigestionService implements DigestingServiceContract {
       [this.configurationService.absolutePathLevelAttributionFileName, this.levelAttributionService.model],
       [this.configurationService.absolutePathPointsToCountFileName, this.sumPointsService.model],
       [this.configurationService.absolutePathConsolidateTopDebugFileName, this.consolidateTopService.model],
+      [this.configurationService.absolutePathDivisionsMatchesDebugFileName, this.divisionsMatchesIngestionService.model],
     ];
     if (this.configurationService.runtimeConfiguration.weeklySummary) {
       debug.push([this.configurationService.absolutePathTechniqueDebugFileName, this.weeklyMatchesSummaryProcessingService.model]);

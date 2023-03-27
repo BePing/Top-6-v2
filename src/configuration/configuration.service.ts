@@ -130,6 +130,10 @@ export class ConfigurationService {
     return `${this.absolutePathOutputToday}/tops_debug.json`;
   }
 
+  get absolutePathDivisionsMatchesDebugFileName(): string {
+    return `${this.absolutePathOutputToday}/divisions_matches.json`;
+  }
+
   absolutePathConsolidatedTopExcelFileName(region: TOP_REGIONS): string {
     return `${this.absolutePathOutputToday}/tops_${region}.xlsx`;
   }
