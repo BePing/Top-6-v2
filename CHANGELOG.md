@@ -1,5 +1,12 @@
 
 
+## [2.3.0](https://github.com/Fllorent0D/Top-6-v2/compare/2.2.0...2.3.0) (2023-03-27)
+
+
+### Features
+
+* add some debug ([7f1676b](https://github.com/Fllorent0D/Top-6-v2/commit/7f1676bfdbfe67824d04eed5d08cdddc17db9e9f))
+
 ## [2.2.0](https://github.com/Fllorent0D/Top-6-v2/compare/2.1.5...2.2.0) (2023-01-08)
 
 
