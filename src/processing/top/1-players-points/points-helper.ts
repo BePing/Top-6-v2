@@ -7,7 +7,7 @@ export class PointsHelper {
     playerUniqueIndex: number,
     individualMatches: IndividualMatchResult[],
     oppositePlayer: Player[],
-    position: 'Away' | 'Home'
+    position: 'Away' | 'Home',
   ): number {
     const oppositePropertyToCheck = position === 'Home' ? 'IsAwayForfeited' : 'IsHomeForfeited';
     const playerPropertyToCheck = position === 'Home' ? 'IsHomeForfeited' : 'IsAwayForfeited';
@@ -15,7 +15,7 @@ export class PointsHelper {
     const individualMatchesFF = PointsHelper.getIndividualMatchesForPlayer(playerUniqueIndex, individualMatches, position)
       .filter((matchResult: IndividualMatchResult) =>
         matchResult[oppositePropertyToCheck] === true &&
-        !matchResult[playerPropertyToCheck]
+        !matchResult[playerPropertyToCheck],
       ).length;
     const playersFF = oppositePlayer.filter((p) => p.IsForfeited).length;
 
@@ -25,7 +25,7 @@ export class PointsHelper {
   static countVictoriesForPlayer(
     playerUniqueIndex: number,
     individualMatches: IndividualMatchResult[],
-    position: 'Away' | 'Home'
+    position: 'Away' | 'Home',
   ): number {
     const scoreToCheck = position === 'Home' ? 'HomeSetCount' : 'AwaySetCount';
 
@@ -37,12 +37,16 @@ export class PointsHelper {
   static getIndividualMatchesForPlayer(
     playerUniqueIndex: number,
     individualMatches: IndividualMatchResult[],
-    currentTeam: 'Away' | 'Home'
+    currentTeam: 'Away' | 'Home',
   ): IndividualMatchResult[] {
     const playerPropertyArrayToCheck = currentTeam === 'Home' ? `HomePlayerUniqueIndex` : `AwayPlayerUniqueIndex`;
 
     return individualMatches
       .filter((matchResult: IndividualMatchResult) => matchResult[playerPropertyArrayToCheck]?.includes(playerUniqueIndex));
+  }
+
+  static calculatePoints(victories: number, forfeits: number): number {
+    return (victories + forfeits) === 4 ? 5 : (victories + forfeits);
   }
 
 }

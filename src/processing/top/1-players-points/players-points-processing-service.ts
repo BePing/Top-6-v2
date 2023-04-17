@@ -1,7 +1,7 @@
 import {Service} from "typedi";
 import {ProcessingServiceContract} from "../../processing-service-contract";
 import {
-  DivisionsMatchesIngestionService
+  DivisionsMatchesIngestionService,
 } from "../../../ingestion/divisions-matches/divisions-matches-ingestion-service";
 import {LoggingService, Maybe, Player, TeamMatchesEntry} from "../../../common";
 import {ConfigurationService} from "../../../configuration/configuration.service";
@@ -10,6 +10,7 @@ import {PlayerPoint, PlayersPointsProcessingModel} from "./players-points-proces
 import {ErrorProcessingService} from "../../error-processing-service/error-processing-service";
 import {WoHelpers} from "./wo-helpers";
 import {PointsHelper} from "./points-helper";
+import {PlayerPointsOverrides} from '../../../configuration/configuration.model';
 
 @Service()
 export class PlayersPointsProcessingService implements ProcessingServiceContract<PlayersPointsProcessingModel> {
@@ -76,6 +77,7 @@ export class PlayersPointsProcessingService implements ProcessingServiceContract
         this.handleMatch(match, currentTeam);
       }
     }
+    this.applyPointsOverrides();
   }
 
   private handleByeMatch(match: TeamMatchesEntry): void {
@@ -98,7 +100,8 @@ export class PlayersPointsProcessingService implements ProcessingServiceContract
     matchId: string,
     matchUniqueId: number,
     victoryCount = 0,
-    forfeit = 0) {
+    forfeit = 0,
+    override = false) {
 
     // Happens for FF FG
     if (uniqueIndex === 0) {
@@ -109,16 +112,32 @@ export class PlayersPointsProcessingService implements ProcessingServiceContract
       this._model[uniqueIndex] = {
         name: playerName,
         club: club,
-        points: []
+        points: [],
       }
     }
 
-    const checkAlreadyExistingPoint: Maybe<PlayerPoint> = this.model[uniqueIndex].points.find((p) => p.weekName === weekName);
+    const checkAlreadyExistingPointIndex: number = this.model[uniqueIndex].points.findIndex((p) => p.weekName === weekName);
+    const checkAlreadyExistingPoint: Maybe<PlayerPoint> = this.model[uniqueIndex].points[checkAlreadyExistingPointIndex];
     if (checkAlreadyExistingPoint) {
-      if (checkAlreadyExistingPoint.matchId === matchId) {
-        this.errorProcessingService.warn(`${playerName} ${uniqueIndex} est inscrit plusieurs fois sur la feuille de match ${checkAlreadyExistingPoint.matchId}. Une seule participation est comptabilisée`)
+      if (override) {
+        if (forfeit) {
+          this.loggingService.info(`Overriding forfeit of ${this.model[uniqueIndex].name}. Weekname: ${weekName}. Victory: ${victoryCount}. Forfeit: ${forfeit}`)
+          this._model[uniqueIndex].points[checkAlreadyExistingPointIndex].forfeit = forfeit;
+        }
+        if (victoryCount) {
+          this.loggingService.info(`Overriding victory of ${this.model[uniqueIndex].name}. Weekname: ${weekName}. Victory: ${victoryCount}. Forfeit: ${forfeit}`)
+          this._model[uniqueIndex].points[checkAlreadyExistingPointIndex].victoryCount = victoryCount;
+        }
+        this._model[uniqueIndex].points[checkAlreadyExistingPointIndex].pointsWon = PointsHelper.calculatePoints(
+          this._model[uniqueIndex].points[checkAlreadyExistingPointIndex].victoryCount,
+          this._model[uniqueIndex].points[checkAlreadyExistingPointIndex].forfeit
+        );
       } else {
-        this.errorProcessingService.error(`${playerName} ${uniqueIndex} a été inscrit sur deux feuilles de match différentes à la semaine ${weekName}. Match 1 : ${checkAlreadyExistingPoint.matchId}, Match2 : ${matchId}. Le match ${matchId} est ignoré`)
+        if (checkAlreadyExistingPoint.matchId === matchId) {
+          this.errorProcessingService.warn(`${playerName} ${uniqueIndex} est inscrit plusieurs fois sur la feuille de match ${checkAlreadyExistingPoint.matchId}. Une seule participation est comptabilisée`)
+        } else {
+          this.errorProcessingService.error(`${playerName} ${uniqueIndex} a été inscrit sur deux feuilles de match différentes à la semaine ${weekName}. Match 1 : ${checkAlreadyExistingPoint.matchId}, Match2 : ${matchId}. Le match ${matchId} est ignoré`)
+        }
       }
       return;
     }
@@ -131,7 +150,7 @@ export class PlayersPointsProcessingService implements ProcessingServiceContract
       matchId,
       matchUniqueId,
       level: this.configurationService.getLevelForDivision(divisionId),
-      pointsWon: (victoryCount + forfeit) === 4 ? 5 : (victoryCount + forfeit)
+      pointsWon: PointsHelper.calculatePoints(victoryCount, forfeit),
     }
 
     this._model[uniqueIndex].points.push(newPlayerPoint)
@@ -149,7 +168,7 @@ export class PlayersPointsProcessingService implements ProcessingServiceContract
         match.MatchId,
         match.MatchUniqueId,
         0,
-        4
+        4,
       );
     }
 
@@ -174,7 +193,7 @@ export class PlayersPointsProcessingService implements ProcessingServiceContract
         match.MatchId,
         match.MatchUniqueId,
         victories,
-        forfeit
+        forfeit,
       )
     }
   }
@@ -199,7 +218,7 @@ export class PlayersPointsProcessingService implements ProcessingServiceContract
           match.MatchId,
           match.MatchUniqueId,
           0,
-          4
+          4,
         );
       }
 
@@ -211,4 +230,23 @@ export class PlayersPointsProcessingService implements ProcessingServiceContract
     }
   }
 
+  private applyPointsOverrides(): void {
+    const pointsOverrides: PlayerPointsOverrides = this.configurationService.pointsOverride;
+    for (const [playerUniqueIndex, points] of Object.entries(pointsOverrides)) {
+      for (const point of points) {
+        this.addMatchToPlayer(
+          Number(playerUniqueIndex),
+          "NA",
+          "NA",
+          0,
+          point.weekName,
+          "NA",
+          0,
+          point.victoryCount,
+          point.forfeit,
+          true,
+        );
+      }
+    }
+  }
 }

@@ -38,9 +38,20 @@ export type DivisionsPerCategory = {
   [x in TOP_LEVEL]: number[];
 }
 
+export interface PlayerPointsOverrides {
+  [key: number]: PointsOverrides[]
+}
+
+export interface PointsOverrides {
+  weekName: number;
+  victoryCount?: number;
+  forfeit?: number;
+}
+
 export interface Top6 {
   clubsPerTop: ClubsPerTop;
   divisionsByLevel: DivisionsPerCategory;
+  pointsOverrides: PlayerPointsOverrides
 }
 
 export interface Email {

@@ -2,7 +2,14 @@ import * as path from "path";
 import {Service} from "typedi";
 import {FileSystemHelper, LoggingService} from "../common";
 import {configurationConst} from "./configuration.const";
-import {Configuration, DivisionsPerCategory, Email, TOP_LEVEL, TOP_REGIONS} from "./configuration.model";
+import {
+  Configuration,
+  DivisionsPerCategory,
+  Email,
+  PlayerPointsOverrides,
+  TOP_LEVEL,
+  TOP_REGIONS,
+} from "./configuration.model";
 import {formatISO9075} from "date-fns";
 import {CommandConfigurationService} from "./command-configuration.service";
 import {ServiceAccount} from "firebase-admin";
@@ -171,6 +178,10 @@ export class ConfigurationService {
       this.emailConfig.recipients
   }
 
+  get pointsOverride(): PlayerPointsOverrides {
+    return this._configuration.top6.pointsOverrides;
+  }
+
   private async loadGoogleServiceAccountCredentials() {
     this._loggingService.debug('GOOGLE SERVICE ACCOUNT')
     const pathToFile = this.runtimeConfiguration.googleCredentialsJSONPath;
@@ -193,14 +204,14 @@ export class ConfigurationService {
   private async loadFacebookAPIKey() {
     this._loggingService.debug('FACEBOOK CREDENTIALS')
     if (!this.runtimeConfiguration.facebookPageId || !this.runtimeConfiguration.facebookPageAccessToken) {
-        this._loggingService.error('Facebook credentials not found!');
-        this._loggingService.trace('Disabling facebook posting');
-        this.runtimeConfiguration.postToFacebook = false;
-        return;
+      this._loggingService.error('Facebook credentials not found!');
+      this._loggingService.trace('Disabling facebook posting');
+      this.runtimeConfiguration.postToFacebook = false;
+      return;
     }
     this._configuration.facebook = {
       pageId: this.runtimeConfiguration.facebookPageId,
-      apiKey: this.runtimeConfiguration.facebookPageAccessToken
+      apiKey: this.runtimeConfiguration.facebookPageAccessToken,
     }
     this._loggingService.trace('Facebook API key loaded from cmd line');
 
