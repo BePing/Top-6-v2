@@ -1,5 +1,12 @@
 
 
+## [2.4.0](https://github.com/Fllorent0D/Top-6-v2/compare/2.3.0...2.4.0) (2023-04-17)
+
+
+### Features
+
+* add points override ([20ea9a0](https://github.com/Fllorent0D/Top-6-v2/commit/20ea9a0318ad09f7080bc0448908fcf577e8dfcc))
+
 ## [2.3.0](https://github.com/Fllorent0D/Top-6-v2/compare/2.2.0...2.3.0) (2023-03-27)
 
 
