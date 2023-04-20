@@ -121,11 +121,11 @@ export class PlayersPointsProcessingService implements ProcessingServiceContract
     if (checkAlreadyExistingPoint) {
       if (override) {
         if (forfeit) {
-          this.loggingService.info(`Overriding forfeit of ${this.model[uniqueIndex].name}. Weekname: ${weekName}. Victory: ${victoryCount}. Forfeit: ${forfeit}`)
+          this.loggingService.info(`Overriding forfeit of ${this.model[uniqueIndex].name}. Weekname: ${weekName}. Setting forfeit to ${forfeit}.`)
           this._model[uniqueIndex].points[checkAlreadyExistingPointIndex].forfeit = forfeit;
         }
         if (victoryCount) {
-          this.loggingService.info(`Overriding victory of ${this.model[uniqueIndex].name}. Weekname: ${weekName}. Victory: ${victoryCount}. Forfeit: ${forfeit}`)
+          this.loggingService.info(`Overriding victory of ${this.model[uniqueIndex].name}. Weekname: ${weekName}. Setting victory to ${victoryCount}.`)
           this._model[uniqueIndex].points[checkAlreadyExistingPointIndex].victoryCount = victoryCount;
         }
         this._model[uniqueIndex].points[checkAlreadyExistingPointIndex].pointsWon = PointsHelper.calculatePoints(

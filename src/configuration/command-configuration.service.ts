@@ -32,14 +32,6 @@ export class CommandConfigurationService {
         type: Boolean,
         default: false
       },
-      facebookPageId: {
-        type: String,
-        default: ''
-      },
-      facebookPageAccessToken: {
-        type: String,
-        default: ''
-      },
       googleJSONCredentialsPath: {
         type: String,
         default: ''

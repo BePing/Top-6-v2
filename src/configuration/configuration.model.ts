@@ -1,18 +1,20 @@
 import {ServiceAccount} from "firebase-admin";
 
+export interface FacebookPage {
+  page_id: string;
+  access_token: string;
+}
+
 export interface Configuration {
-  tabtBaseApi: string;
+  beping_url: string;
   top6: Top6;
-  email: Email;
-  facebook?: {
-    pageId: string,
-    apiKey: string
-  };
+  email: Mailing;
+  facebook?: FacebookPage;
   output: string;
   firebase?: ServiceAccount
 }
 
-export type ClubsPerTop = {
+export type RegionsDefinition = {
   [index in TOP_REGIONS]: string[]
 }
 
@@ -34,12 +36,12 @@ export enum TOP_LEVEL {
 
 export const topLevelOrder = Object.values(TOP_LEVEL);
 
-export type DivisionsPerCategory = {
+export type LevelsDefinition = {
   [x in TOP_LEVEL]: number[];
 }
 
 export interface PlayerPointsOverrides {
-  [key: number]: PointsOverrides[]
+  [key: string]: PointsOverrides[]
 }
 
 export interface PointsOverrides {
@@ -49,14 +51,14 @@ export interface PointsOverrides {
 }
 
 export interface Top6 {
-  clubsPerTop: ClubsPerTop;
-  divisionsByLevel: DivisionsPerCategory;
-  pointsOverrides: PlayerPointsOverrides
+  regions_definition: RegionsDefinition;
+  levels_definition: LevelsDefinition;
+  points_overrides: PlayerPointsOverrides;
 }
 
-export interface Email {
+export interface Mailing {
   recipients: string[];
-  errorRecipients: string[];
+  error_recipients: string[];
   subject: string;
   text: string;
 }

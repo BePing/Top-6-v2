@@ -1,51 +1,42 @@
 import * as path from "path";
-import {Service} from "typedi";
+import {Inject, Service} from "typedi";
 import {FileSystemHelper, LoggingService} from "../common";
-import {configurationConst} from "./configuration.const";
 import {
   Configuration,
-  DivisionsPerCategory,
-  Email,
-  PlayerPointsOverrides,
+  Mailing, FacebookPage, LevelsDefinition,
+  PlayerPointsOverrides, RegionsDefinition,
   TOP_LEVEL,
   TOP_REGIONS,
 } from "./configuration.model";
 import {formatISO9075} from "date-fns";
 import {CommandConfigurationService} from "./command-configuration.service";
-import {ServiceAccount} from "firebase-admin";
-import * as fs from "fs";
+import admin, {ServiceAccount} from "firebase-admin";
 
 @Service()
 export class ConfigurationService {
 
-  private readonly _configuration: Configuration;
+  private _configuration: Configuration;
+
   readonly dateStart = new Date();
 
   constructor(
     private readonly _loggingService: LoggingService,
     private readonly _fileSystemHelper: FileSystemHelper,
     private readonly commandConfiguration: CommandConfigurationService,
-    config: Configuration | undefined) {
-    this._configuration = config ?? configurationConst;
+    @Inject('firebase.admin') private readonly _firebaseAdmin: admin.app.App) {
   }
 
   async init(): Promise<void> {
     this._loggingService.info(this._loggingService.getLayerInfo('CONFIGURATION'));
+    await this.loadConfigFromFirestore();
 
-    this.commandConfiguration.init();
-    if (this.runtimeConfiguration.postToFacebook) {
-      await this.loadFacebookAPIKey();
-    }
-    if (this.runtimeConfiguration.uploadToFirebase) {
-      await this.loadGoogleServiceAccountCredentials();
-    }
     await this.logConfigAsync();
     await this.initFileSystemAsync();
   }
 
   private async logConfigAsync(): Promise<void> {
     this._loggingService.debug(`GLOBAL CONFIGURATION`);
-    this._loggingService.trace(`TabT API: ${this._configuration.tabtBaseApi}`);
+    this._loggingService.trace(`TabT API: ${this._configuration.beping_url}`);
     this._loggingService.debug(`RUNTIME CONFIGURATION`);
     this._loggingService.trace(`weekName: ${this.commandConfiguration.weekName}`);
     this._loggingService.trace(`weeklySummary: ${this.commandConfiguration.weeklySummary}`);
@@ -62,7 +53,7 @@ export class ConfigurationService {
     }
 
     this._loggingService.debug(`DIVISIONS`);
-    for (const [category, divisions] of Object.entries(this.divisionsPerCategory)) {
+    for (const [category, divisions] of Object.entries(this.levelsDefinition)) {
       this._loggingService.trace(`- ${category}: ${divisions.join(', ')}`);
     }
 
@@ -76,7 +67,7 @@ export class ConfigurationService {
   }
 
   getAllClubsForRegion(top: TOP_REGIONS): string[] {
-    return this._configuration.top6.clubsPerTop[top];
+    return this._configuration.top6.regions_definition[top];
   }
 
   get allClubsUniqueIndex(): string[] {
@@ -97,12 +88,12 @@ export class ConfigurationService {
     return Object.values(TOP_LEVEL);
   }
 
-  get divisionsPerCategory(): DivisionsPerCategory {
-    return this._configuration.top6.divisionsByLevel
+  get levelsDefinition(): LevelsDefinition {
+    return this._configuration.top6.levels_definition
   }
 
   get allDivisions(): number[] {
-    return Object.values(this._configuration.top6.divisionsByLevel).flat();
+    return Object.values(this._configuration.top6.levels_definition).flat();
   }
 
   get absolutePathOutput(): string {
@@ -150,7 +141,7 @@ export class ConfigurationService {
   }
 
   getLevelForDivision(divisionId: number): TOP_LEVEL {
-    const category = Object.entries(this._configuration.top6.divisionsByLevel)
+    const category = Object.entries(this._configuration.top6.levels_definition)
       .find(([, divisions]: [TOP_LEVEL, number[]]) => divisions.includes(divisionId));
     return category?.[0] as TOP_LEVEL;
   }
@@ -159,7 +150,7 @@ export class ConfigurationService {
     return this.commandConfiguration
   }
 
-  get emailConfig(): Email {
+  get emailConfig(): Mailing {
     return this._configuration.email;
   }
 
@@ -179,41 +170,33 @@ export class ConfigurationService {
   }
 
   get pointsOverride(): PlayerPointsOverrides {
-    return this._configuration.top6.pointsOverrides;
+    return this._configuration.top6.points_overrides;
   }
 
-  private async loadGoogleServiceAccountCredentials() {
-    this._loggingService.debug('GOOGLE SERVICE ACCOUNT')
-    const pathToFile = this.runtimeConfiguration.googleCredentialsJSONPath;
-    if (!pathToFile) {
-      this._loggingService.error('Google service account information not found!');
-      this._loggingService.trace('Disabling upload to firebase');
-      this.runtimeConfiguration.uploadToFirebase = false;
-      return;
-    }
-    this._loggingService.trace('Loading from ' + pathToFile);
-    try {
-      const apiKeys = fs.readFileSync(pathToFile, 'utf8');
-      this._configuration.firebase = JSON.parse(apiKeys);
-    } catch (e) {
-      this._loggingService.error('Error when loading Google Service Account!');
-      this.runtimeConfiguration.uploadToFirebase = false;
-    }
-  }
 
-  private async loadFacebookAPIKey() {
-    this._loggingService.debug('FACEBOOK CREDENTIALS')
-    if (!this.runtimeConfiguration.facebookPageId || !this.runtimeConfiguration.facebookPageAccessToken) {
-      this._loggingService.error('Facebook credentials not found!');
-      this._loggingService.trace('Disabling facebook posting');
-      this.runtimeConfiguration.postToFacebook = false;
-      return;
-    }
-    this._configuration.facebook = {
-      pageId: this.runtimeConfiguration.facebookPageId,
-      apiKey: this.runtimeConfiguration.facebookPageAccessToken,
-    }
-    this._loggingService.trace('Facebook API key loaded from cmd line');
+  private async loadConfigFromFirestore() {
+    this._loggingService.debug('LOADING CONFIGURATION FROM FIRESTORE');
 
+    this._loggingService.trace('Configuration loaded');
+    const configurationCollection = this._firebaseAdmin.firestore().collection('configuration');
+    const facebook = await configurationCollection.doc('facebook').get();
+    const beping_api = await configurationCollection.doc('beping_api').get();
+    const levels_definition = await configurationCollection.doc('levels_definition').get();
+    const regions_definition = await configurationCollection.doc('regions_definition').get();
+    const points_overrides = await configurationCollection.doc('points_overrides').get();
+    const mailing = await configurationCollection.doc('mailing').get();
+
+    this._configuration = {
+      facebook: facebook.data() as FacebookPage,
+      beping_url: beping_api.data().url,
+      top6: {
+        levels_definition: levels_definition.data() as LevelsDefinition,
+        regions_definition: regions_definition.data() as RegionsDefinition,
+        points_overrides: points_overrides.data()
+      },
+      email: mailing.data() as Mailing,
+      output: 'output'
+
+    }
   }
 }

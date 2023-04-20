@@ -12,23 +12,35 @@ import {ClubsApi, DivisionsApi, MatchesApi} from "./common";
 import {TabtClientConfigFactory} from "./common/tabt-client-config-factory";
 import axios, {AxiosInstance} from "axios";
 import axiosRetry from "axios-retry";
+import {CommandConfigurationService} from './configuration/command-configuration.service';
+import {GoogleCredentialsLoaderService} from './configuration/google-credentials-loader.service';
+import admin from 'firebase-admin';
 
 dotenv.config();
 
-const run = async () => {
+function createAxiosInstance() {
   const axiosInstance: AxiosInstance = axios.create();
   axiosRetry(axiosInstance, {
     retries: 3,
     retryCondition: () => true,
     retryDelay: (retryCount) => retryCount * 5_000,
   });
-  Container.set([
-    {id: 'clubs.api', factory: () => new ClubsApi(TabtClientConfigFactory.createConfiguration(), null, axiosInstance)},
-    {id: 'matches.api', factory: () => new MatchesApi(TabtClientConfigFactory.createConfiguration(), null, axiosInstance)},
-    {id: 'divisions.api', factory: () => new DivisionsApi(TabtClientConfigFactory.createConfiguration(), null, axiosInstance)},
-    {id: 'randomip', value: randomIP}
-  ])
+  return axiosInstance;
+}
 
+const run = async () => {
+  await Container.get(CommandConfigurationService).init();
+
+  const googleCredentialsLoader: GoogleCredentialsLoaderService = await Container.get(GoogleCredentialsLoaderService);
+  await googleCredentialsLoader.init();
+
+  Container.set([
+    {id: 'clubs.api', factory: () => new ClubsApi(TabtClientConfigFactory.createConfiguration(), null, createAxiosInstance())},
+    {id: 'matches.api', factory: () => new MatchesApi(TabtClientConfigFactory.createConfiguration(), null, createAxiosInstance())},
+    {id: 'divisions.api', factory: () => new DivisionsApi(TabtClientConfigFactory.createConfiguration(), null, createAxiosInstance())},
+    {id: 'firebase.admin', factory: () => admin.initializeApp({credential: admin.credential.cert(googleCredentialsLoader.googleCredentials)})},
+    {id: 'randomip', value: randomIP},
+  ]);
 
   await Container.get(ConfigurationService).init();
   await Container.get(IngestionService).ingest();

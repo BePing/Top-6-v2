@@ -1,9 +1,9 @@
 import {Configuration, TOP_LEVEL, TOP_REGIONS} from "./configuration.model";
 
 export const configurationConst: Configuration = {
-  tabtBaseApi: 'http://api.beping.be',
+  beping_url: 'http://api.beping.be',
   top6: {
-    clubsPerTop: {
+    regions_definition: {
       [TOP_REGIONS.HUY_WAREMME]: [
         'L029', 'L126', 'L193', 'L205', 'L230', 'L246', 'L257',
         'L266', 'L267', 'L275', 'L276', 'L282', 'L293', 'L295',
@@ -23,7 +23,7 @@ export const configurationConst: Configuration = {
         'L296', 'L326', 'L329', 'L344', 'L349', 'L357', 'L378', 'L403',
       ],
     },
-    divisionsByLevel: {
+    levels_definition: {
       [TOP_LEVEL.NAT_WB]: [6072, 6073, 6074, 6075, 6086, 6078, 6287, 6288, 6289, 6290, 6291],
       [TOP_LEVEL.P1]: [6428, 6430],
       [TOP_LEVEL.P2]: [6432, 6434, 6436, 6438],
@@ -32,7 +32,7 @@ export const configurationConst: Configuration = {
       [TOP_LEVEL.P5]: [6462, 6464, 6466, 6468, 6470, 6472, 6474],
       [TOP_LEVEL.P6]: [6476, 6478, 6480, 6482, 6484, 6486, 6488, 6490, 6492, 6494],
     },
-    pointsOverrides: {
+    points_overrides: {
       149585: [{
         weekName: 1,
         forfeit: 1,
@@ -51,7 +51,7 @@ export const configurationConst: Configuration = {
       'thomasbastin5@gmail.com',
       'raphael.castillejos@hotmail.com',
     ],
-    errorRecipients: [
+    error_recipients: [
       'f.cardoen@me.com',
     ],
     subject: 'Top 6 / Techniques (Verviers, Huy-Waremme, Liège)',

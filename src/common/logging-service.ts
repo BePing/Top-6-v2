@@ -30,7 +30,10 @@ export class LoggingService {
           {
             level: 'trace',
             target: 'pino-pretty',
-            options: {destination: 1}
+            options: {
+              destination: 1,
+              ignore: 'pid,hostname,time',
+            }
           },
           {
             level: 'trace',

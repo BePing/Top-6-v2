@@ -18,10 +18,10 @@ export class FacebookPostingService implements DigestingServiceContract {
   async digest(): Promise<void> {
     this.loggingService.info('Posting on facebook...');
     const text = this.generateText();
-    FB.setAccessToken(this.configurationService.facebookConfig.apiKey);
+    FB.setAccessToken(this.configurationService.facebookConfig.access_token);
     try {
       const postid = await (new Promise((resolve, reject) => {
-        FB.api(this.configurationService.facebookConfig.pageId + '/feed', 'post', {
+        FB.api(this.configurationService.facebookConfig.page_id + '/feed', 'post', {
           message: text,
           published: true,
         }, (res: any) => {
