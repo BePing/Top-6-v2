@@ -1,5 +1,12 @@
 
 
+## [2.5.0](https://github.com/Fllorent0D/Top-6-v2/compare/2.4.0...2.5.0) (2023-04-20)
+
+
+### Features
+
+* externalize configs ([385f9a4](https://github.com/Fllorent0D/Top-6-v2/commit/385f9a40b8bc4b1a5d381bfb7ed1e1d7549f5f2a))
+
 ## [2.4.0](https://github.com/Fllorent0D/Top-6-v2/compare/2.3.0...2.4.0) (2023-04-17)
 
 
