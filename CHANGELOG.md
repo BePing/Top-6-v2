@@ -1,5 +1,12 @@
 
 
+## [2.6.0](https://github.com/Fllorent0D/Top-6-v2/compare/2.5.0...2.6.0) (2023-04-25)
+
+
+### Features
+
+* players in tops in runtime command ([1f1eb99](https://github.com/Fllorent0D/Top-6-v2/commit/1f1eb9914a424ff14dde8b9454c72ffb28133e9b))
+
 ## [2.5.0](https://github.com/Fllorent0D/Top-6-v2/compare/2.4.0...2.5.0) (2023-04-20)
 
 
