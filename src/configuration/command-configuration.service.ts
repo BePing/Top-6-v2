@@ -10,32 +10,36 @@ export class CommandConfigurationService {
     this.parsed = typeFlag({
       weeklySummary: {
         type: Boolean,
-        default: false
+        default: false,
+      },
+      playersInTop: {
+        type: Number,
+        default: 24,
       },
       emails: {
         type: [String],
-        default: () => []
+        default: () => [],
       },
       weekName: {
         type: Number,
-        default: 22
+        default: 22,
       },
       sendViaEmail: {
         type: Boolean,
-        default: false
+        default: false,
       },
       uploadToFirebase: {
         type: Boolean,
-        default: false
+        default: false,
       },
       postToFacebook: {
         type: Boolean,
-        default: false
+        default: false,
       },
       googleJSONCredentialsPath: {
         type: String,
-        default: ''
-      }
+        default: '',
+      },
     });
   }
 
@@ -83,5 +87,7 @@ export class CommandConfigurationService {
     return this.parsed.flags.facebookPageAccessToken;
   }
 
-
+  get playersInTop(): number {
+    return this.parsed.flags.playersInTop;
+  }
 }
