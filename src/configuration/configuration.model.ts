@@ -54,6 +54,7 @@ export interface Top6 {
   regions_definition: RegionsDefinition;
   levels_definition: LevelsDefinition;
   points_overrides: PlayerPointsOverrides;
+  excluded_players: number[];
 }
 
 export interface Mailing {

@@ -184,6 +184,7 @@ export class ConfigurationService {
     const levels_definition = await configurationCollection.doc('levels_definition').get();
     const regions_definition = await configurationCollection.doc('regions_definition').get();
     const points_overrides = await configurationCollection.doc('points_overrides').get();
+    const excluded_players = await configurationCollection.doc('excluded_players').get();
     const mailing = await configurationCollection.doc('mailing').get();
 
     this._configuration = {
@@ -192,11 +193,16 @@ export class ConfigurationService {
       top6: {
         levels_definition: levels_definition.data() as LevelsDefinition,
         regions_definition: regions_definition.data() as RegionsDefinition,
-        points_overrides: points_overrides.data()
+        points_overrides: points_overrides.data(),
+        excluded_players: excluded_players.data().players
       },
       email: mailing.data() as Mailing,
       output: 'output'
 
     }
+  }
+
+  isPlayerExcluded(uniqueIndex: number) {
+    return this._configuration.top6.excluded_players.includes(uniqueIndex);
   }
 }

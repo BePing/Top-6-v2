@@ -178,6 +178,12 @@ export class PlayersPointsProcessingService implements ProcessingServiceContract
     const players: Player[] = match.MatchDetails?.[currentTeam + 'Players']?.Players ?? [];
     const opposite = currentTeam === 'Home' ? 'Away' : 'Home';
     for (const player of players) {
+      // If a player is in a exclusion list, skip it
+      if (this.configurationService.isPlayerExcluded(player.UniqueIndex)) {
+        this.loggingService.info(`Player ${player.LastName} ${player.FirstName} is excluded from points calculation`);
+        continue;
+      }
+
       const victories = PointsHelper.countVictoriesForPlayer(player.UniqueIndex, match.MatchDetails?.IndividualMatchResults ?? [], currentTeam);
       const forfeit = PointsHelper.countForfeitForPlayer(
         player.UniqueIndex,

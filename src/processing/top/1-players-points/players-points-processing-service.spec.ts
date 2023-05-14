@@ -2860,4 +2860,8 @@ describe('PlayersPointsProcessingService', () => {
 
     expect(service.model).toEqual(results);
   })
+  it('should skip players if in exclusion list', () => {
+
+  })
+
 })
