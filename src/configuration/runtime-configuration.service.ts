@@ -1,10 +1,22 @@
 import typeFlag from "type-flag";
 import {Service} from "typedi";
 
-@Service()
-export class CommandConfigurationService {
+export interface RuntimeConfiguration {
+  weeklySummary: boolean;
+  playersInTop: number;
+  emails: string[];
+  weekName: number;
+  sendViaEmail: boolean;
+  uploadToFirebase: boolean;
+  postToFacebook: boolean;
+  writeFullDebug: boolean;
+  googleJSONCredentialsPath: string;
+}
 
-  private parsed;
+@Service()
+export class RuntimeConfigurationService {
+
+  private parsed: RuntimeConfiguration;
 
   init() {
     this.parsed = typeFlag({
@@ -36,58 +48,62 @@ export class CommandConfigurationService {
         type: Boolean,
         default: false,
       },
+      writeFullDebug: {
+        type: Boolean,
+        default: false,
+      },
       googleJSONCredentialsPath: {
         type: String,
         default: '',
       },
-    });
+    }).flags;
+  }
+
+  override(config: Partial<RuntimeConfiguration>): void {
+    this.parsed = {...this.parsed, ...config};
   }
 
   get weeklySummary(): boolean {
-    return this.parsed.flags.weeklySummary;
+    return this.parsed.weeklySummary;
   }
 
   get weekName(): number {
-    return this.parsed.flags.weekName;
+    return this.parsed.weekName;
   }
 
   get sendViaEmail(): boolean {
-    return this.parsed.flags.sendViaEmail;
+    return this.parsed.sendViaEmail;
   }
 
   get uploadToFirebase(): boolean {
-    return this.parsed.flags.uploadToFirebase;
+    return this.parsed.uploadToFirebase;
   }
 
   set uploadToFirebase(upload: boolean) {
-    this.parsed.flags.uploadToFirebase = upload;
+    this.parsed.uploadToFirebase = upload;
   }
 
   get googleCredentialsJSONPath(): string {
-    return this.parsed.flags.googleJSONCredentialsPath;
+    return this.parsed.googleJSONCredentialsPath;
   }
 
   get emails(): string[] {
-    return this.parsed.flags.emails;
+    return this.parsed.emails;
   }
 
   get postToFacebook(): boolean {
-    return this.parsed.flags.postToFacebook;
+    return this.parsed.postToFacebook;
   }
 
   set postToFacebook(post: boolean) {
-    this.parsed.flags.postToFacebook = post;
-  }
-
-  get facebookPageId(): string {
-    return this.parsed.flags.facebookPageId;
-  }
-
-  get facebookPageAccessToken(): string {
-    return this.parsed.flags.facebookPageAccessToken;
+    this.parsed.postToFacebook = post;
   }
 
   get playersInTop(): number {
-    return this.parsed.flags.playersInTop;
+    return this.parsed.playersInTop;
+  }
+
+  get writeFullDebug(): boolean {
+    return this.parsed.writeFullDebug;
   }
 }

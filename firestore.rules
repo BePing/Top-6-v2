@@ -1,0 +1,14 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+  	match /tops/{documents=**}{  
+	    allow read,list: if true
+    }
+    match /livescore/{documents=**}{  
+	    allow read,list: if true
+    }
+    match /players-points-details/{documents=**}{  
+	    allow read: if true
+    }
+  }
+}

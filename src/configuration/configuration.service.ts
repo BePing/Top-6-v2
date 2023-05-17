@@ -9,7 +9,7 @@ import {
   TOP_REGIONS,
 } from "./configuration.model";
 import {formatISO9075} from "date-fns";
-import {CommandConfigurationService} from "./command-configuration.service";
+import {RuntimeConfigurationService} from "./runtime-configuration.service";
 import admin, {ServiceAccount} from "firebase-admin";
 
 @Service()
@@ -22,7 +22,7 @@ export class ConfigurationService {
   constructor(
     private readonly _loggingService: LoggingService,
     private readonly _fileSystemHelper: FileSystemHelper,
-    private readonly commandConfiguration: CommandConfigurationService,
+    private readonly commandConfiguration: RuntimeConfigurationService,
     @Inject('firebase.admin') private readonly _firebaseAdmin: admin.app.App) {
   }
 
@@ -161,6 +161,10 @@ export class ConfigurationService {
   get firebaseConfig(): ServiceAccount {
     // TODO: move to env?
     return this._configuration.firebase;
+  }
+
+  get writeDebugFiles(): boolean {
+    return this.runtimeConfiguration.writeFullDebug;
   }
 
   get emailsRecipients(): string[] {

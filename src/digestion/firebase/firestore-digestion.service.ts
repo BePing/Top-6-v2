@@ -32,6 +32,7 @@ export class FirestoreDigestionService implements DigestingServiceContract {
 
   private async updateTops() {
     this.loggingService.info('Saving tops to Firebase...');
+    const updateBatch = this.firebaseService.firestore().batch();
     const topsCollection: CollectionReference = this.firebaseService.firestore().collection('/tops');
     for (const region of this.configurationService.allRegions) {
       const regionDoc = topsCollection.doc(region);
@@ -46,12 +47,13 @@ export class FirestoreDigestionService implements DigestingServiceContract {
       }, {});
       const clubs = this.configurationService.getAllClubsForRegion(region);
 
-      await regionDoc.set({clubs, levels});
+      updateBatch.set(regionDoc, {clubs, levels});
       this.loggingService.trace('✅ ' + region);
 
       // Adding indexes into array to update only them
       this.uniqueIndexesInTops.push(...Object.values(levels).flat().map(playerPosition => playerPosition.uniqueIndex));
     }
+    await updateBatch.commit();
   }
 
   private async updateDetails() {

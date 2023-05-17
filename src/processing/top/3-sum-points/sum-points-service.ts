@@ -42,7 +42,6 @@ export class SumPointsService implements ProcessingServiceContract<PlayersTotalP
       } as PlayerTotalPoints;
     }
   }
-  // TODO make static at some point?
   private getAllPointsForUniqueIndex(uniqueIndex: string): number[] {
     const divisionAttributed = this.levelAttributionService.model[uniqueIndex]
     const allPoints = this.playersPointsProcessingService.model[uniqueIndex].points;

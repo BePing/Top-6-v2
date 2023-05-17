@@ -1,4 +1,4 @@
-import {CommandConfigurationService} from './command-configuration.service';
+import {RuntimeConfigurationService} from './runtime-configuration.service';
 import fs from 'fs';
 import {LoggingService} from '../common';
 import {ServiceAccount} from 'firebase-admin';
@@ -12,7 +12,7 @@ export class GoogleCredentialsLoaderService {
   private _googleCredentials: ServiceAccount;
 
   constructor(
-    private readonly commandConfigurationService: CommandConfigurationService,
+    private readonly commandConfigurationService: RuntimeConfigurationService,
     private readonly _loggingService: LoggingService,
   ) {
   }

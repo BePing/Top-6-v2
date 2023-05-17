@@ -23,7 +23,7 @@ export class DigestingService {
     private readonly excelDebugOutputService: ExcelDebugOutputService,
     private readonly facebookPostingService: FacebookPostingService,
     private readonly firestoreDigestionService: FirestoreDigestionService,
-    private readonly firebaseMessagingService: FirebaseMessagingService
+    private readonly firebaseMessagingService: FirebaseMessagingService,
   ) {
   }
 
@@ -34,7 +34,6 @@ export class DigestingService {
       await this.weeklyMatchesSummaryDigestionService.digest();
     }
     await this.excelOutput.digest();
-    await this.excelDebugOutputService.digestTops();
 
     if (this.configurationService.runtimeConfiguration.sendViaEmail) {
       await this.emailSenderService.digest();
@@ -46,6 +45,9 @@ export class DigestingService {
       await this.firestoreDigestionService.digest();
       await this.firebaseMessagingService.digest();
     }
-    await this.debugDigestionService.digest();
+    if (this.configurationService.runtimeConfiguration.writeFullDebug) {
+      await this.excelDebugOutputService.digestTops();
+      await this.debugDigestionService.digest();
+    }
   }
 }

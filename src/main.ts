@@ -12,7 +12,7 @@ import {ClubsApi, DivisionsApi, MatchesApi} from "./common";
 import {TabtClientConfigFactory} from "./common/tabt-client-config-factory";
 import axios, {AxiosInstance} from "axios";
 import axiosRetry from "axios-retry";
-import {CommandConfigurationService} from './configuration/command-configuration.service';
+import {RuntimeConfigurationService} from './configuration/runtime-configuration.service';
 import {GoogleCredentialsLoaderService} from './configuration/google-credentials-loader.service';
 import admin from 'firebase-admin';
 
@@ -29,7 +29,7 @@ function createAxiosInstance() {
 }
 
 const run = async () => {
-  await Container.get(CommandConfigurationService).init();
+  await Container.get(RuntimeConfigurationService).init();
 
   const googleCredentialsLoader: GoogleCredentialsLoaderService = await Container.get(GoogleCredentialsLoaderService);
   await googleCredentialsLoader.init();

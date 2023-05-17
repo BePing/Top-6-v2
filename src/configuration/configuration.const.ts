@@ -3,6 +3,7 @@ import {Configuration, TOP_LEVEL, TOP_REGIONS} from "./configuration.model";
 export const configurationConst: Configuration = {
   beping_url: 'http://api.beping.be',
   top6: {
+    excluded_players: [],
     regions_definition: {
       [TOP_REGIONS.HUY_WAREMME]: [
         'L029', 'L126', 'L193', 'L205', 'L230', 'L246', 'L257',

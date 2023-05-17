@@ -32,15 +32,25 @@ export class ConsolidateTopService implements ProcessingServiceContract<Consolid
   async process(): Promise<void> {
     this.loggingService.info(`Consolidating tops...`);
     this._model = {};
+
+  }
+
+  getConsolidatedTopForWeekName(weekName: number): ConsolidateTopModel {
+    const model: ConsolidateTopModel = {};
     for (const region of Object.keys(TOP_REGIONS)) {
-      this._model[region] = {};
+      model[region] = {};
       const clubsForRegion = this.configurationService.getAllClubsForRegion(region as TOP_REGIONS);
-      const playersForRegion: [string, PlayerPoints][] = Object.entries(this.playersPointsProcessingService.model).filter(([, playerPoints]) => clubsForRegion.includes((playerPoints.club)));
+      const playersForRegion: [string, PlayerPoints][] = Object.entries(this.playersPointsProcessingService.model)
+        .filter(([, playerPoints]) => clubsForRegion.includes((playerPoints.club)));
       for (const level of topLevelOrder) {
         const top: PlayerPosition[] = [];
-        const uniqueIndexOfLevel: string[] = Object.entries(this.levelAttributionService.model).filter(([, levelAttributed]) => level === levelAttributed).map(([uniqueIndex]) => uniqueIndex);
-        const playerForRegionInLevel: [string, PlayerPoints][] = playersForRegion.filter(([uniqueIndex]) => uniqueIndexOfLevel.includes(uniqueIndex));
+        const uniqueIndexOfLevel: string[] = Object.entries(this.levelAttributionService.model)
+          .filter(([, levelAttributed]) => level === levelAttributed)
+          .map(([uniqueIndex]) => uniqueIndex);
+        const playerForRegionInLevel: [string, PlayerPoints][] = playersForRegion
+          .filter(([uniqueIndex]) => uniqueIndexOfLevel.includes(uniqueIndex));
         for (const [uniqueIndex, playerPoints] of playerForRegionInLevel) {
+          // get points for player until weekName
           const countedPlayerPoints = this.sumPointsService.getPlayerPoints(uniqueIndex);
           top.push({
             uniqueIndex,
@@ -48,7 +58,7 @@ export class ConsolidateTopService implements ProcessingServiceContract<Consolid
             clubName: this.clubIngestion.getClubWithUniqueIndex(playerPoints.club).LongName,
             name: playerPoints.name,
             points: countedPlayerPoints
-          })
+          });
         }
 
         top.sort((a, b) =>
@@ -60,10 +70,12 @@ export class ConsolidateTopService implements ProcessingServiceContract<Consolid
           (a.name.localeCompare(b.name))
         );
 
-        this._model[region][level] = top
+        model[region][level] = top
       }
     }
+    return model;
   }
+
 
   getTopForRegionAndLevel(region: TOP_REGIONS, level: TOP_LEVEL, numberOfPlayer = 12): PlayerPosition[] {
     return this.model[region][level].slice(0, numberOfPlayer - 1);
