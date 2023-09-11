@@ -53,7 +53,6 @@ export class FirestoreDigestionService implements DigestingServiceContract {
         return {...acc, [level]: results};
       }, {});
       const clubs = this.configurationService.getAllClubsForRegion(region);
-      console.log({clubs, levels});
       updateBatch.set(regionDoc, {clubs, levels});
       this.loggingService.trace('✅ ' + region);
 
@@ -97,7 +96,6 @@ export class FirestoreDigestionService implements DigestingServiceContract {
       }
     }
 
-    console.log(this.uniqueIndexesInTops.length)
     this.loggingService.trace('✅ ' + this.uniqueIndexesInTops.length + ' players updated');
   }
 

@@ -281,7 +281,7 @@ export class ExcelDebugOutputService implements DigestingServiceContract {
     }
   }
 
-  private digestGroupedCountedPoints(workbook: any) {
+  private digestGroupedCountedPoints(workbook: Workbook) {
     const workSheet = workbook.addWorksheet("points-comptabilises-groupe");
     const table = workSheet.addTable({
       name: 'points-comptabilises-groupé',

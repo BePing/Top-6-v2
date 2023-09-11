@@ -33,6 +33,7 @@ export class WeeklyMatchesSummaryIngestionService implements IngestionServiceCon
       const clubs = this.config.getAllClubsForRegion(region);
       for (const club of clubs) {
         const {data: matches} = await this.matchesApi.findAllMatches({
+          xTabtSeason: "23",
           club,
           withDetails: true,
           yearDateFrom: format(this._model.from, 'yyyy-MM-dd'),

@@ -24,7 +24,7 @@ export class FacebookPostingService implements DigestingServiceContract {
         FB.api(this.configurationService.facebookConfig.page_id + '/feed', 'post', {
           message: text,
           published: true,
-        }, (res: any) => {
+        }, (res) => {
           if (!res || res.error) {
             reject(new Error('Error when posting to Facebook. ' + res.error.message));
           }

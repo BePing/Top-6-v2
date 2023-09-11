@@ -11,9 +11,11 @@ import {toTitleCase} from "../../common/text-helper";
 
 enum CATEGORY_MAPPING {
   "MEN" = "MEN",
+  // eslint-disable-next-line @typescript-eslint/no-duplicate-enum-values
   "MEN_POST_23" = "MEN",
   "WOMEN" = "WOMEN",
-  "WOMEN_POST_23" = "MEN",
+  // eslint-disable-next-line @typescript-eslint/no-duplicate-enum-values
+  "WOMEN_POST_23" = "WOMEN",
 }
 
 

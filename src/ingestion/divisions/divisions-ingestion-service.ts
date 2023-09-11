@@ -18,7 +18,8 @@ export class DivisionsIngestionService implements IngestionServiceContract<Divis
   async ingest() {
     this.logging.info('Fetching divisions info');
     const {data: divisions} = await this.divisionsApi.findAllDivisions({
-      showDivisionName: "short"
+      showDivisionName: "short",
+      xTabtSeason: "23"
     });
     this._model = {
       divisions

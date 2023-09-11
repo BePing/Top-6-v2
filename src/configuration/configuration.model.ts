@@ -63,6 +63,11 @@ export interface Mailing {
   error_recipients: string[];
   subject: string;
   text: string;
+  mailjet: MailjetConfig;
 }
 
+export interface MailjetConfig {
+  api_key: string;
+  api_secret: string;
+}
 

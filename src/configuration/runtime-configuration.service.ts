@@ -1,4 +1,4 @@
-import typeFlag from "type-flag";
+import {typeFlag} from "type-flag";
 import {Service} from "typedi";
 
 export interface RuntimeConfiguration {

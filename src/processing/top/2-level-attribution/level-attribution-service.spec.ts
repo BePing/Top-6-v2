@@ -4,6 +4,7 @@ import {LevelAttributionService} from "./level-attribution-service";
 import {PlayersPointsProcessingService} from "../1-players-points/players-points-processing-service";
 import {PlayersPointsProcessingModel} from "../1-players-points/players-points-processing-model";
 import {TOP_LEVEL} from "../../../configuration/configuration.model";
+import { ConfigurationService } from "../../../configuration/configuration.service";
 
 describe('LevelAttributionService', () => {
   describe('process', () => {
@@ -28,7 +29,7 @@ describe('LevelAttributionService', () => {
                 },
                 {
                   divisionId: 12,
-                  weekName: 1,
+                  weekName: 2,
                   level: TOP_LEVEL.P1,
                   victoryCount: 4,
                   forfeit: 0,
@@ -38,7 +39,7 @@ describe('LevelAttributionService', () => {
                 },
                 {
                   divisionId: 12,
-                  weekName: 1,
+                  weekName: 3,
                   level: TOP_LEVEL.P1,
                   victoryCount: 4,
                   forfeit: 0,
@@ -48,7 +49,7 @@ describe('LevelAttributionService', () => {
                 },
                 {
                   divisionId: 12,
-                  weekName: 1,
+                  weekName: 4,
                   level: TOP_LEVEL.P2,
                   victoryCount: 4,
                   forfeit: 0,
@@ -62,12 +63,21 @@ describe('LevelAttributionService', () => {
           }
         }
       });
-
-      const service = new LevelAttributionService(loggerMock, playersPointsProcessingServiceMock);
+      const configMock = createMock<ConfigurationService>({
+        get runtimeConfiguration() {
+          return { weekName: 4 }
+        }
+      })
+      const service = new LevelAttributionService(
+        loggerMock,
+        playersPointsProcessingServiceMock,
+        configMock
+      );
       await service.process();
 
       const result = service.model;
-      expect(result[142453]).toBe(TOP_LEVEL.P1);
+      expect(result[1][142453]).toBe(TOP_LEVEL.NAT_WB);
+      expect(result[4][142453]).toBe(TOP_LEVEL.P1);
 
     })
     it('should compute lowest level if same number of participation', async () => {
@@ -91,7 +101,7 @@ describe('LevelAttributionService', () => {
                 },
                 {
                   divisionId: 12,
-                  weekName: 1,
+                  weekName: 2,
                   level: TOP_LEVEL.P1,
                   victoryCount: 4,
                   forfeit: 0,
@@ -101,7 +111,7 @@ describe('LevelAttributionService', () => {
                 },
                 {
                   divisionId: 12,
-                  weekName: 1,
+                  weekName: 3,
                   level: TOP_LEVEL.P2,
                   victoryCount: 4,
                   forfeit: 0,
@@ -111,7 +121,7 @@ describe('LevelAttributionService', () => {
                 },
                 {
                   divisionId: 12,
-                  weekName: 1,
+                  weekName: 4,
                   level: TOP_LEVEL.P2,
                   victoryCount: 4,
                   forfeit: 0,
@@ -125,12 +135,17 @@ describe('LevelAttributionService', () => {
           }
         }
       });
-
-      const service = new LevelAttributionService(loggerMock, playersPointsProcessingServiceMock);
+      const configMock = createMock<ConfigurationService>({
+        get runtimeConfiguration() {
+          return { weekName: 4 }
+        }
+      })
+      const service = new LevelAttributionService(loggerMock, playersPointsProcessingServiceMock, configMock);
       await service.process();
 
       const result = service.model;
-      expect(result[142453]).toBe(TOP_LEVEL.P2);
+      expect(result[2][142453]).toBe(TOP_LEVEL.P1);
+      expect(result[4][142453]).toBe(TOP_LEVEL.P2);
 
     })
   });

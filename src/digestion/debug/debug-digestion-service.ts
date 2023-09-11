@@ -28,7 +28,7 @@ export class DebugDigestionService implements DigestingServiceContract {
   async digest(): Promise<void> {
     this.logging.info(`Saving debug`);
 
-    const debug: [string, any][] = [
+    const debug: [string, object][] = [
       [this.configurationService.absolutePathPlayerPointsFileName, this.playersPointsProcessingService.model],
       [this.configurationService.absolutePathLevelAttributionFileName, this.levelAttributionService.model],
       [this.configurationService.absolutePathPointsToCountFileName, this.sumPointsService.model],

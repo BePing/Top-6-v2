@@ -134,9 +134,9 @@ export class PlayersPointsProcessingService implements ProcessingServiceContract
         );
       } else {
         if (checkAlreadyExistingPoint.matchId === matchId) {
-          this.errorProcessingService.warn(`${playerName} ${uniqueIndex} est inscrit plusieurs fois sur la feuille de match ${checkAlreadyExistingPoint.matchId}. Une seule participation est comptabilisée`)
+          this.errorProcessingService.warn(`${playerName} (ID : ${uniqueIndex}) a été enregistré plusieurs fois sur la feuille de match ${checkAlreadyExistingPoint.matchId}. Seule une participation a été comptabilisée`);
         } else {
-          this.errorProcessingService.error(`${playerName} ${uniqueIndex} a été inscrit sur deux feuilles de match différentes à la semaine ${weekName}. Match 1 : ${checkAlreadyExistingPoint.matchId}, Match2 : ${matchId}. Le match ${matchId} est ignoré`)
+          this.errorProcessingService.error(`${playerName} (ID : ${uniqueIndex}) a été enregistré sur deux feuilles de match différentes lors de la semaine ${weekName}. Match 1 :  ${checkAlreadyExistingPoint.matchId}, Match 2 : ${matchId}. Veuillez noter que la participation de ${playerName} pour le match ${matchId} a été exclu de notre calcul.`)
         }
       }
       return;

@@ -6,18 +6,21 @@ import * as mailjet from 'node-mailjet';
 import * as fs from "fs";
 import path from "path";
 import {ErrorProcessingService} from "../../processing/error-processing-service/error-processing-service";
+import Mailjet from 'node-mailjet';
 
 @Service()
 export class EmailSenderService implements DigestingServiceContract {
-  mailClient: any;
+  mailClient: Mailjet;
 
   constructor(
     private readonly loggingService: LoggingService,
     private readonly configurationService: ConfigurationService,
     private readonly errorProcessingService: ErrorProcessingService,
   ) {
-    this.mailClient = mailjet.connect('4c0d99aa13e01081f5e59e076f470d4f', '5747512394e71b611f7b3d29ab309d32');
-
+    this.mailClient = new mailjet.Client({
+      apiKey: this.configurationService.emailConfig.mailjet.api_key,
+      apiSecret: this.configurationService.emailConfig.mailjet.api_secret
+    });
   }
 
   async digest(): Promise<void> {
@@ -47,19 +50,20 @@ export class EmailSenderService implements DigestingServiceContract {
 
     let text = this.configurationService.emailConfig.text;
     if (this.errorProcessingService._model.errors.length > 0) {
-      text += `<p>Erreurs détectées:</p><ul>`;
+      text += `<p>Nous avons détecté les erreurs suivantes :</p><ul>`;
       for (const error of this.errorProcessingService._model.errors) {
         text += `<li>${error}</li>`;
       }
       text += '</ul>'
     }
     if (this.errorProcessingService._model.warnings.length > 0) {
-      text += `<p>Avertissements:</p><ul>`;
+      text += `<p>Nous vous informons que des avertissements ont été émis pour :</p><ul>`;
       for (const error of this.errorProcessingService._model.warnings) {
         text += `<li>${error}</li>`;
       }
       text += '</ul>'
     }
+    text += `<p>Cordialement,</p><p>Florent Cardoen</p>`;
 
     const data = {
       'Messages': [

@@ -23,7 +23,8 @@ export class DivisionsMatchesIngestionService implements IngestionServiceContrac
     for (const divisionId of this.config.allDivisions) {
       const {data: matches} = await this.matchesApi.findAllMatches({
         divisionId,
-        withDetails: true
+        withDetails: true,
+        xTabtSeason: "23"
       });
       this._model.matches.push(...matches);
       // this._model.matches.push(...matches.filter(m => Number(m.WeekName) <= this.config.runtimeConfiguration.weekName));

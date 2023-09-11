@@ -4,7 +4,6 @@ import { createMock } from "ts-auto-mock";
 import { method, On } from "ts-auto-mock/extension";
 import { ConfigurationService } from "../../configuration/configuration.service";
 import { DivisionsMatchesIngestionService } from "./divisions-matches-ingestion-service";
-import { PartialDeep } from "ts-auto-mock/partial/partial";
 
 
 describe('DivisionsMatchesIngestionService', () => {
@@ -67,7 +66,7 @@ describe('DivisionsMatchesIngestionService', () => {
     })
     it('should not crash is no results returned for a division', async () => {
       const configMock = createMock<ConfigurationService>({
-        get allDivisions(): PartialObjectDeep<number[]> {
+        get allDivisions(): number[] {
           return [11]
         },
         get runtimeConfiguration() {

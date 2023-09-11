@@ -19,7 +19,7 @@ export class ClubsIngestionService implements IngestionServiceContract<ClubsInge
 
   async ingest() {
     this.logging.info('Fetching clubs info');
-    const clubs = await this.clubsApi.findAllClubs({});
+    const clubs = await this.clubsApi.findAllClubs({xTabtSeason: "23"});
     this._model = {
       clubs: clubs.data.filter((club) => this.config.allClubsUniqueIndex.includes(club.UniqueIndex))
     }

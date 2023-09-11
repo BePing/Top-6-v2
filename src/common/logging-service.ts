@@ -45,27 +45,27 @@ export class LoggingService {
     });
   }
 
-  trace(msg: string, ...args: any[]): void {
+  trace(msg: string, ...args: object[]): void {
     this.log(LogLevel.TRACE, msg, args);
   }
 
-  debug(msg: string, ...args: any[]): void {
+  debug(msg: string, ...args: object[]): void {
     this.log(LogLevel.DEBUG, msg, args);
   }
 
-  info(msg: string, ...args: any[]): void {
+  info(msg: string, ...args: object[]): void {
     this.log(LogLevel.INFO, msg, args);
   }
 
-  warn(msg: string, ...args: any[]): void {
+  warn(msg: string, ...args: object[]): void {
     this.log(LogLevel.WARN, msg, args);
   }
 
-  error(msg: string, ...args: any[]): void {
+  error(msg: string, ...args: object[]): void {
     this.log(LogLevel.ERROR, msg, args);
   }
 
-  private log(loglevel: LogLevel, msg: string, ...args: any[]) {
+  private log(loglevel: LogLevel, msg: string, ...args: object[]) {
     const indentedMessage = msg //this.getIndentedMessage(msg, indentation);
     switch (loglevel) {
       case LogLevel.TRACE:
