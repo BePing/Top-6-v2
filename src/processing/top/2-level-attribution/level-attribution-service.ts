@@ -6,6 +6,7 @@ import {PlayerPoint, PlayerPoints} from "../1-players-points/players-points-proc
 import {groupBy} from "lodash";
 import {TOP_LEVEL, topLevelOrder} from "../../../configuration/configuration.model";
 import {PlayersLevelAttribution} from "./level-attribution-model";
+import {ConfigurationService} from '../../../configuration/configuration.service';
 
 @Service()
 export class LevelAttributionService implements ProcessingServiceContract<PlayersLevelAttribution> {
@@ -14,7 +15,8 @@ export class LevelAttributionService implements ProcessingServiceContract<Player
 
   constructor(
     private readonly loggingService: LoggingService,
-    private readonly playersPointsProcessingService: PlayersPointsProcessingService
+    private readonly playersPointsProcessingService: PlayersPointsProcessingService,
+    private readonly configurationService: ConfigurationService,
   ) {
   }
 
@@ -24,17 +26,25 @@ export class LevelAttributionService implements ProcessingServiceContract<Player
 
   async process(): Promise<void> {
     this.loggingService.info(`Attributing levels...`);
-
     this._model = {}
-    for (const [uniqueIndex, points] of Object.entries(this.playersPointsProcessingService.model)) {
-      const mainLevel: TOP_LEVEL =
-        Object.entries(groupBy((points as PlayerPoints).points, 'level'))
-          .sort(([levelA, pointsA]: [TOP_LEVEL, PlayerPoint[]], [levelB, pointsB]: [TOP_LEVEL, PlayerPoint[]]) =>
-            ((pointsB.length - pointsA.length) * 10) + (topLevelOrder.indexOf(levelB) - topLevelOrder.indexOf(levelA))
-          )[0][0] as TOP_LEVEL;
-      this._model[uniqueIndex] = mainLevel;
+
+    for (let weekName = 1; weekName <= this.configurationService.runtimeConfiguration.weekName; weekName++) {
+      this._model[weekName] = {};
+      for (const [uniqueIndex, playerPoints] of Object.entries<PlayerPoints>(this.playersPointsProcessingService.model)) {
+        const pointsForWeekname: PlayerPoint[] = playerPoints.points.filter((playerPoint) => playerPoint.weekName <= weekName);
+        const pointsPerLevels: [string, PlayerPoint[]][] = Object.entries(groupBy(pointsForWeekname, 'level'));
+        const mainLevel =
+          pointsPerLevels.sort((
+              [levelA, pointsA]: [TOP_LEVEL, PlayerPoint[]],
+              [levelB, pointsB]: [TOP_LEVEL, PlayerPoint[]],
+            ) =>
+              ((pointsB.length - pointsA.length) * 10) + (topLevelOrder.indexOf(levelB) - topLevelOrder.indexOf(levelA)),
+          );
+        this._model[weekName][uniqueIndex] = (mainLevel?.[0]?.[0] as TOP_LEVEL) ?? TOP_LEVEL.NA;
+      }
     }
   }
-
-
+  getLevelForUniqueIndex(uniqueIndex: string, weekName: number): TOP_LEVEL {
+    return this.model[weekName][uniqueIndex];
+  }
 }

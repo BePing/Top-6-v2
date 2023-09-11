@@ -12,7 +12,7 @@ export class IngestionService {
   constructor(
     private readonly clubsIngestionService: ClubsIngestionService,
     private readonly divisionsIngestionService: DivisionsIngestionService,
-    private readonly clubsMatchesIngestionService: DivisionsMatchesIngestionService,
+    private readonly divisionsMatchesIngestionService: DivisionsMatchesIngestionService,
     private readonly weeklyMatchesSummaryIngestionService: WeeklyMatchesSummaryIngestionService,
     private readonly configurationService: ConfigurationService,
     private readonly logging: LoggingService
@@ -22,9 +22,14 @@ export class IngestionService {
   async ingest(): Promise<void> {
     this.logging.info(this.logging.getLayerInfo('🍔 INGESTION'));
 
+    // Meta information
     await this.clubsIngestionService.ingest();
-    await this.clubsMatchesIngestionService.ingest();
     await this.divisionsIngestionService.ingest();
+
+    // Full matches data
+    await this.divisionsMatchesIngestionService.ingest();
+
+    // Weekly summary if requested
     if (this.configurationService.runtimeConfiguration.weeklySummary) {
       await this.weeklyMatchesSummaryIngestionService.ingest();
     }

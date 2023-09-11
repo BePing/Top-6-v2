@@ -32,6 +32,7 @@ export enum TOP_LEVEL {
   P4 = "Provincial 4",
   P5 = "Provincial 5",
   P6 = "Provincial 6",
+  NA = "N/A"
 }
 
 export const topLevelOrder = Object.values(TOP_LEVEL);

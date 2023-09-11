@@ -1,16 +1,20 @@
 import * as path from "path";
-import {Inject, Service} from "typedi";
+import {Container, Inject, Service} from "typedi";
 import {FileSystemHelper, LoggingService} from "../common";
 import {
   Configuration,
-  Mailing, FacebookPage, LevelsDefinition,
-  PlayerPointsOverrides, RegionsDefinition,
+  FacebookPage,
+  LevelsDefinition,
+  Mailing,
+  PlayerPointsOverrides,
+  RegionsDefinition,
   TOP_LEVEL,
   TOP_REGIONS,
 } from "./configuration.model";
 import {formatISO9075} from "date-fns";
 import {RuntimeConfigurationService} from "./runtime-configuration.service";
 import admin, {ServiceAccount} from "firebase-admin";
+import {GoogleCredentialsLoaderService} from './google-credentials-loader.service';
 
 @Service()
 export class ConfigurationService {
@@ -23,11 +27,18 @@ export class ConfigurationService {
     private readonly _loggingService: LoggingService,
     private readonly _fileSystemHelper: FileSystemHelper,
     private readonly commandConfiguration: RuntimeConfigurationService,
-    @Inject('firebase.admin') private readonly _firebaseAdmin: admin.app.App) {
+    private readonly googleCredentialsLoader: GoogleCredentialsLoaderService,
+    @Inject('firebase.admin') private _firebaseAdmin: admin.app.App) {
   }
 
   async init(): Promise<void> {
     this._loggingService.info(this._loggingService.getLayerInfo('CONFIGURATION'));
+    await this.commandConfiguration.init();
+    await this.googleCredentialsLoader.init();
+
+    // Reload firebase admin since it has been updated by the googleCredentialsLoader
+    this._firebaseAdmin = await Container.get('firebase.admin');
+
     await this.loadConfigFromFirestore();
 
     await this.logConfigAsync();
@@ -35,9 +46,8 @@ export class ConfigurationService {
   }
 
   private async logConfigAsync(): Promise<void> {
-    this._loggingService.debug(`GLOBAL CONFIGURATION`);
-    this._loggingService.trace(`TabT API: ${this._configuration.beping_url}`);
     this._loggingService.debug(`RUNTIME CONFIGURATION`);
+    this._loggingService.trace(`TabT API: ${this._configuration.beping_url}`);
     this._loggingService.trace(`weekName: ${this.commandConfiguration.weekName}`);
     this._loggingService.trace(`weeklySummary: ${this.commandConfiguration.weeklySummary}`);
     this._loggingService.trace(`postToFacebook: ${this.commandConfiguration.postToFacebook}`);
@@ -198,15 +208,19 @@ export class ConfigurationService {
         levels_definition: levels_definition.data() as LevelsDefinition,
         regions_definition: regions_definition.data() as RegionsDefinition,
         points_overrides: points_overrides.data(),
-        excluded_players: excluded_players.data().players
+        excluded_players: excluded_players.data().players,
       },
       email: mailing.data() as Mailing,
-      output: 'output'
+      output: 'output',
 
     }
   }
 
   isPlayerExcluded(uniqueIndex: number) {
     return this._configuration.top6.excluded_players.includes(uniqueIndex);
+  }
+
+  get bepingUrl(): string {
+    return this._configuration.beping_url;
   }
 }

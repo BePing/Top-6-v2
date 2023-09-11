@@ -1,6 +1,8 @@
-export interface PlayersTotalPoints {
-  [x: number]: PlayerTotalPoints;
-}
+import {PerWeekName} from '../top-processing-model';
+
+export type PlayersTotalPoints = PerWeekName<{
+    [x: number]: PlayerTotalPoints;
+}>;
 
 export interface PlayerTotalPoints {
   total: number;

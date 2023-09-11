@@ -30,3 +30,5 @@ build/
 /output/
 .env
 top-6-adminsdk.json
+PASSWORD
+emulator-data

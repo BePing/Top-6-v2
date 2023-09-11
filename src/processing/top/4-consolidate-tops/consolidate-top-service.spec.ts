@@ -12,39 +12,45 @@ import {ClubsIngestionService} from "../../../ingestion/clubs/clubs-ingestion-se
 import {ConsolidateTopService} from "./consolidate-top-service";
 
 describe('ConsolidateTopService', () => {
-  describe('process',  () => {
+  describe('process', () => {
     it('should process top correctly and ouput a ranking per division and region', async () => {
       const loggerMock = createMock<LoggingService>();
       const configMock = createMock<ConfigurationService>({
+        runtimeConfiguration: {
+          weekName: 2,
+        },
         getAllClubsForRegion: jest.fn()
           .mockReturnValueOnce(["club a", "club b"])
           .mockReturnValueOnce(["club c", "club d"])
           .mockReturnValueOnce(["club e", "club f"])
+          .mockReturnValueOnce(["club a", "club b"])
+          .mockReturnValueOnce(["club c", "club d"])
+          .mockReturnValueOnce(["club e", "club f"]),
       })
       const clubIngestionMock = createMock<ClubsIngestionService>({
         getClubWithUniqueIndex: (uniqueIndex: string) => {
           switch (uniqueIndex) {
             case 'club a':
               return {
-                LongName: 'Club A'
+                LongName: 'Club A',
               } as ClubEntry
             case 'club b':
               return {
-                LongName: 'Club B'
+                LongName: 'Club B',
               } as ClubEntry
             case 'club C':
               return {
-                LongName: 'Club C'
+                LongName: 'Club C',
               } as ClubEntry
             case 'club D':
               return {
-                LongName: 'Club D'
+                LongName: 'Club D',
               } as ClubEntry
           }
           return {
-            LongName: 'sth else'
+            LongName: 'sth else',
           } as ClubEntry
-        }
+        },
       })
       const playersPointsProcessingServiceMock = createMock<PlayersPointsProcessingService>({
         get model(): PlayersPointsProcessingModel {
@@ -61,7 +67,7 @@ describe('ConsolidateTopService', () => {
                   "matchId": "RM01/043",
                   "matchUniqueId": 475440,
                   "level": TOP_LEVEL.NAT_WB,
-                  "pointsWon": 5
+                  "pointsWon": 5,
                 },
                 {
                   "divisionId": 5354,
@@ -71,9 +77,9 @@ describe('ConsolidateTopService', () => {
                   "matchId": "RM02/045",
                   "matchUniqueId": 478547,
                   "level": TOP_LEVEL.NAT_WB,
-                  "pointsWon": 1
+                  "pointsWon": 1,
                 },
-              ]
+              ],
             },
             "222": {
               "name": "Pauline",
@@ -87,7 +93,7 @@ describe('ConsolidateTopService', () => {
                   "matchId": "RM01/043",
                   "matchUniqueId": 475440,
                   "level": TOP_LEVEL.NAT_WB,
-                  "pointsWon": 2
+                  "pointsWon": 2,
                 },
                 {
                   "divisionId": 5354,
@@ -97,9 +103,9 @@ describe('ConsolidateTopService', () => {
                   "matchId": "RM02/045",
                   "matchUniqueId": 478547,
                   "level": TOP_LEVEL.NAT_WB,
-                  "pointsWon": 1
+                  "pointsWon": 1,
                 },
-              ]
+              ],
             },
             "333": {
               "name": "Shana",
@@ -113,7 +119,7 @@ describe('ConsolidateTopService', () => {
                   "matchId": "RM01/043",
                   "matchUniqueId": 475440,
                   "level": TOP_LEVEL.P2,
-                  "pointsWon": 3
+                  "pointsWon": 3,
                 },
                 {
                   "divisionId": 5354,
@@ -123,9 +129,9 @@ describe('ConsolidateTopService', () => {
                   "matchId": "RM02/045",
                   "matchUniqueId": 478547,
                   "level": TOP_LEVEL.P2,
-                  "pointsWon": 0
+                  "pointsWon": 0,
                 },
-              ]
+              ],
             },
             "444": {
               "name": "Eric",
@@ -139,7 +145,7 @@ describe('ConsolidateTopService', () => {
                   "matchId": "RM01/043",
                   "matchUniqueId": 475440,
                   "level": TOP_LEVEL.P2,
-                  "pointsWon": 5
+                  "pointsWon": 5,
                 },
                 {
                   "divisionId": 5354,
@@ -149,60 +155,104 @@ describe('ConsolidateTopService', () => {
                   "matchId": "RM02/045",
                   "matchUniqueId": 478547,
                   "level": TOP_LEVEL.P2,
-                  "pointsWon": 3
+                  "pointsWon": 3,
                 },
-              ]
+              ],
             },
           }
-        }
+        },
       })
       const sumPointsServiceMock = createMock<SumPointsService>({
         get model(): PlayersTotalPoints {
           return {
-            '111': {
-              "total": 6,
-              "count1Pts": 1,
-              "count2Pts": 0,
-              "count3Pts": 0,
-              "count5Pts": 1,
-              "count0Pts": 0
+            1: {
+              '111': {
+                "total": 6,
+                "count1Pts": 0,
+                "count2Pts": 0,
+                "count3Pts": 0,
+                "count5Pts": 1,
+                "count0Pts": 0,
+              },
+              '222': {
+                "total": 3,
+                "count1Pts": 1,
+                "count2Pts": 0,
+                "count3Pts": 0,
+                "count5Pts": 0,
+                "count0Pts": 0,
+              },
+              '333': {
+                "total": 3,
+                "count1Pts": 0,
+                "count2Pts": 0,
+                "count3Pts": 0,
+                "count5Pts": 0,
+                "count0Pts": 1,
+              },
+              '444': {
+                "total": 8,
+                "count1Pts": 0,
+                "count2Pts": 0,
+                "count3Pts": 0,
+                "count5Pts": 1,
+                "count0Pts": 0,
+              },
             },
-            '222': {
-              "total": 3,
-              "count1Pts": 1,
-              "count2Pts": 1,
-              "count3Pts": 0,
-              "count5Pts": 0,
-              "count0Pts": 0
-            },
-            '333': {
-              "total": 3,
-              "count1Pts": 0,
-              "count2Pts": 0,
-              "count3Pts": 1,
-              "count5Pts": 0,
-              "count0Pts": 1
-            },
-            '444': {
-              "total": 8,
-              "count1Pts": 0,
-              "count2Pts": 0,
-              "count3Pts": 1,
-              "count5Pts": 1,
-              "count0Pts": 0
+            2: {
+              '111': {
+                "total": 6,
+                "count1Pts": 1,
+                "count2Pts": 0,
+                "count3Pts": 0,
+                "count5Pts": 1,
+                "count0Pts": 0,
+              },
+              '222': {
+                "total": 3,
+                "count1Pts": 1,
+                "count2Pts": 1,
+                "count3Pts": 0,
+                "count5Pts": 0,
+                "count0Pts": 0,
+              },
+              '333': {
+                "total": 3,
+                "count1Pts": 0,
+                "count2Pts": 0,
+                "count3Pts": 1,
+                "count5Pts": 0,
+                "count0Pts": 1,
+              },
+              '444': {
+                "total": 8,
+                "count1Pts": 0,
+                "count2Pts": 0,
+                "count3Pts": 1,
+                "count5Pts": 1,
+                "count0Pts": 0,
+              },
             },
           }
-        }
+        },
       });
       const levelAttributionServiceMock = createMock<LevelAttributionService>({
         get model(): PlayersLevelAttribution {
           return {
-            '111': TOP_LEVEL.NAT_WB,
-            '222': TOP_LEVEL.NAT_WB,
-            '333': TOP_LEVEL.P2,
-            '444': TOP_LEVEL.P2
+            1: {
+              '111': TOP_LEVEL.NAT_WB,
+              '222': TOP_LEVEL.NAT_WB,
+              '333': TOP_LEVEL.P2,
+              '444': TOP_LEVEL.P2,
+            },
+            2: {
+              '111': TOP_LEVEL.NAT_WB,
+              '222': TOP_LEVEL.NAT_WB,
+              '333': TOP_LEVEL.P2,
+              '444': TOP_LEVEL.P2,
+            },
           }
-        }
+        },
 
 
       })
@@ -213,22 +263,22 @@ describe('ConsolidateTopService', () => {
         playersPointsProcessingServiceMock,
         sumPointsServiceMock,
         levelAttributionServiceMock,
-        clubIngestionMock
+        clubIngestionMock,
       )
       await service.process()
       const result = service.model;
       console.log(result)
-      expect(result.HUY_WAREMME.NAT_WB.length).toEqual(2);
-      expect(result.HUY_WAREMME.NAT_WB[0].uniqueIndex).toEqual("111");
-      expect(result.HUY_WAREMME.NAT_WB[0].clubName).toEqual("Club A");
-      expect(result.HUY_WAREMME.NAT_WB[0].name).toEqual("Florent");
-      expect(result.HUY_WAREMME.NAT_WB[1].uniqueIndex).toEqual("222");
-      expect(result.HUY_WAREMME.NAT_WB[1].clubName).toEqual("Club B");
-      expect(result.HUY_WAREMME.NAT_WB[1].name).toEqual("Pauline");
+      expect(result[1].HUY_WAREMME.NAT_WB.length).toEqual(2);
+      expect(result[1].HUY_WAREMME.NAT_WB[0].uniqueIndex).toEqual("111");
+      expect(result[1].HUY_WAREMME.NAT_WB[0].clubName).toEqual("Club A");
+      expect(result[1].HUY_WAREMME.NAT_WB[0].name).toEqual("Florent");
+      expect(result[1].HUY_WAREMME.NAT_WB[1].uniqueIndex).toEqual("222");
+      expect(result[1].HUY_WAREMME.NAT_WB[1].clubName).toEqual("Club B");
+      expect(result[1].HUY_WAREMME.NAT_WB[1].name).toEqual("Pauline");
 
-      expect(result.HUY_WAREMME["Provincial 2"].length).toEqual(0);
-      expect(result.LIEGE["Provincial 2"].length).toEqual(2);
-      expect(result.LIEGE.NAT_WB.length).toEqual(0);
+      expect(result[1].HUY_WAREMME["Provincial 2"].length).toEqual(0);
+      expect(result[1].LIEGE["Provincial 2"].length).toEqual(2);
+      expect(result[1].LIEGE.NAT_WB.length).toEqual(0);
 
 
     });

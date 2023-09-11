@@ -1,11 +1,8 @@
-import {TOP_LEVEL, TOP_REGIONS} from "../../../configuration/configuration.model";
 import {PlayerTotalPoints} from "../3-sum-points/sum-points-model";
+import {PerLevelName, PerRegionName, PerWeekName} from '../top-processing-model';
 
-export type ConsolidateTopModel = {
-  [index in TOP_REGIONS]?: {
-    [index in TOP_LEVEL]?: PlayerPosition[]
-  };
-};
+
+export type ConsolidateTopModel = PerWeekName<PerRegionName<PerLevelName<PlayerPosition[]>>>;
 
 export interface PlayerPosition {
   uniqueIndex: string;

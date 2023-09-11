@@ -50,7 +50,7 @@ export class RuntimeConfigurationService {
       },
       writeFullDebug: {
         type: Boolean,
-        default: false,
+        default: true,
       },
       googleJSONCredentialsPath: {
         type: String,

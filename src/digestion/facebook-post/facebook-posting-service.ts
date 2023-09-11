@@ -46,7 +46,7 @@ export class FacebookPostingService implements DigestingServiceContract {
   }
 
   generateText(): string {
-    const tops = this.consolidateTopService.model.VERVIERS;
+    const tops = this.consolidateTopService.model[this.configurationService.runtimeConfiguration.weekName].VERVIERS;
     let text = 'Classement de la journée n°' + this.configurationService.runtimeConfiguration.weekName;
     for (const [level, playerPositions] of Object.entries(tops)) {
       text += '\n\n## Catégorie ' + level;

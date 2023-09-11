@@ -1,5 +1,5 @@
 export interface ProcessingServiceContract<T> {
-  process(): Promise<void>;
+  process(...any): Promise<void>;
 
   get model(): T;
 }

@@ -11,7 +11,6 @@ import {ClubsApi, DivisionsApi, MatchesApi} from "./common";
 import {TabtClientConfigFactory} from "./common/tabt-client-config-factory";
 import axios, {AxiosInstance} from "axios";
 import axiosRetry from "axios-retry";
-import {RuntimeConfigurationService} from './configuration/runtime-configuration.service';
 import admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 
@@ -34,26 +33,28 @@ export const computeTop = functions
   })
   .https
   .onRequest(async () => {
-    await Container.get(RuntimeConfigurationService).init();
-    await Container.get(ConfigurationService).init();
+    const configService = await Container.get(ConfigurationService);
+    await configService.init();
 
     Container.set([
       {
         id: 'clubs.api',
-        factory: () => new ClubsApi(TabtClientConfigFactory.createConfiguration(), null, createAxiosInstance()),
+        factory: () => new ClubsApi(TabtClientConfigFactory.createConfiguration(configService.bepingUrl), null, createAxiosInstance()),
       },
       {
         id: 'matches.api',
-        factory: () => new MatchesApi(TabtClientConfigFactory.createConfiguration(), null, createAxiosInstance()),
+        factory: () => new MatchesApi(TabtClientConfigFactory.createConfiguration(configService.bepingUrl), null, createAxiosInstance()),
       },
       {
         id: 'divisions.api',
-        factory: () => new DivisionsApi(TabtClientConfigFactory.createConfiguration(), null, createAxiosInstance()),
+        factory: () => new DivisionsApi(TabtClientConfigFactory.createConfiguration(configService.bepingUrl), null, createAxiosInstance()),
       },
-      {id: 'firebase.admin', factory: () => admin.initializeApp()},
+      {
+        id: 'firebase.admin',
+        factory: () => admin.initializeApp(),
+      },
       {id: 'randomip', value: randomIP},
     ]);
-
     await Container.get(IngestionService).ingest();
     await Container.get(ProcessingService).process();
     await Container.get(DigestingService).digest();

@@ -1,7 +1,7 @@
 import {TOP_LEVEL} from "../../../configuration/configuration.model";
 
 export interface PlayersPointsProcessingModel {
-  [x: number]: PlayerPoints
+  [x: string]: PlayerPoints
 }
 
 export interface PlayerPoint {

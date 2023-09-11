@@ -246,7 +246,8 @@ export class ExcelDebugOutputService implements DigestingServiceContract {
         pointsForWeek(20),
         pointsForWeek(21),
         pointsForWeek(22),
-        this.sumPoints.getPlayerPoints(uniqueIndex).total
+        0
+        //this.sumPoints.getPlayerPoints(uniqueIndex, 22).total
       ]);
       table.commit();
     }
@@ -303,7 +304,7 @@ export class ExcelDebugOutputService implements DigestingServiceContract {
       rows: [],
     });
 
-    const pointsModels = this.sumPoints.model;
+    const pointsModels = this.sumPoints.model[this.configurationService.runtimeConfiguration.weekName];
     for (const [uniqueIndex, playerPoints] of Object.entries(pointsModels) as [string, PlayerTotalPoints][]) {
 
       table.addRow([

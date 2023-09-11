@@ -1,15 +1,11 @@
 import {RuntimeConfigurationService} from './runtime-configuration.service';
 import fs from 'fs';
 import {LoggingService} from '../common';
-import {ServiceAccount} from 'firebase-admin';
-import {Service} from 'typedi';
+import admin from 'firebase-admin';
+import {Container, Service} from 'typedi';
 
 @Service()
 export class GoogleCredentialsLoaderService {
-  get googleCredentials(): ServiceAccount {
-    return this._googleCredentials;
-  }
-  private _googleCredentials: ServiceAccount;
 
   constructor(
     private readonly commandConfigurationService: RuntimeConfigurationService,
@@ -27,7 +23,12 @@ export class GoogleCredentialsLoaderService {
     this._loggingService.trace('Loading from ' + pathToFile);
     try {
       const apiKeys = fs.readFileSync(pathToFile, 'utf8');
-      this._googleCredentials = JSON.parse(apiKeys);
+      const credentials = JSON.parse(apiKeys);
+      Container.set(
+        'firebase.admin',
+        admin.initializeApp({credential: admin.credential.cert(credentials)}),
+      );
+
     } catch (e) {
       this._loggingService.error('Error when loading Google Service Account!');
       process.exit(1);

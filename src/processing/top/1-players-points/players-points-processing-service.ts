@@ -6,7 +6,7 @@ import {
 import {LoggingService, Maybe, Player, TeamMatchesEntry} from "../../../common";
 import {ConfigurationService} from "../../../configuration/configuration.service";
 import {TeamMatchEntryHelpers} from "../../../common/team-match-entry-helpers";
-import {PlayerPoint, PlayersPointsProcessingModel} from "./players-points-processing-model";
+import {PlayerPoint, PlayerPoints, PlayersPointsProcessingModel} from "./players-points-processing-model";
 import {ErrorProcessingService} from "../../error-processing-service/error-processing-service";
 import {WoHelpers} from "./wo-helpers";
 import {PointsHelper} from "./points-helper";
@@ -107,9 +107,9 @@ export class PlayersPointsProcessingService implements ProcessingServiceContract
     if (uniqueIndex === 0) {
       return;
     }
-
-    if (!this.model[uniqueIndex]) {
-      this._model[uniqueIndex] = {
+    const uniqueIndexString = uniqueIndex.toString();
+    if (!this.model[uniqueIndexString]) {
+      this._model[uniqueIndexString] = {
         name: playerName,
         club: club,
         points: [],
@@ -201,6 +201,14 @@ export class PlayersPointsProcessingService implements ProcessingServiceContract
         victories,
         forfeit,
       )
+    }
+  }
+  getPlayerResultsUntilWeekName(uniqueIndex: string, weekName: number): PlayerPoints {
+    const playerPoints = this.model[uniqueIndex];
+    const pointsForWeekname: PlayerPoint[] = playerPoints.points.filter((playerPoint) => playerPoint.weekName <= weekName);
+    return {
+      ...playerPoints,
+      points: pointsForWeekname,
     }
   }
 

@@ -1,5 +1,4 @@
 import {TOP_LEVEL} from "../../../configuration/configuration.model";
+import {PerUniqueIndex, PerWeekName} from '../top-processing-model';
 
-export interface PlayersLevelAttribution {
-  [x: number]: TOP_LEVEL
-}
+export type PlayersLevelAttribution = PerWeekName<PerUniqueIndex<TOP_LEVEL>>

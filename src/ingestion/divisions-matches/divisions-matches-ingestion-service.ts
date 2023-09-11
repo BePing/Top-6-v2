@@ -25,7 +25,8 @@ export class DivisionsMatchesIngestionService implements IngestionServiceContrac
         divisionId,
         withDetails: true
       });
-      this._model.matches.push(...matches.filter(m => Number(m.WeekName) <= this.config.runtimeConfiguration.weekName));
+      this._model.matches.push(...matches);
+      // this._model.matches.push(...matches.filter(m => Number(m.WeekName) <= this.config.runtimeConfiguration.weekName));
       total += matches.length;
       this.logging.trace(`${matches.length > 0 ? '✅ ' : '⛔️'} ${divisionId} - ${matches.length} matches`);
     }

@@ -22,16 +22,17 @@
     "release": "release-it"
   },
   "devDependencies": {
-    "firebase-functions": "^4.3.1",
     "@openapitools/openapi-generator-cli": "2.4.26",
     "@types/jest": "27.4.1",
     "@types/lodash": "4.14.180",
     "@types/node": "16.11.26",
     "@typescript-eslint/eslint-plugin": "5.14.0",
     "@typescript-eslint/parser": "5.14.0",
+    "bun-types": "^1.0.1",
     "eslint": "8.11.0",
     "eslint-config-prettier": "8.5.0",
     "eslint-plugin-jest": "26.1.1",
+    "firebase-functions": "^4.3.1",
     "jest": "27.5.1",
     "jest-ts-auto-mock": "2.1.0",
     "prettier": "2.5.1",

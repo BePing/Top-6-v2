@@ -1,9 +1,10 @@
-import {LoggingService, MatchesApi} from "../../common";
+import { LoggingService, MatchesApi } from "../../common";
 
-import {createMock} from "ts-auto-mock";
-import {method, On} from "ts-auto-mock/extension";
-import {ConfigurationService} from "../../configuration/configuration.service";
-import {DivisionsMatchesIngestionService} from "./divisions-matches-ingestion-service";
+import { createMock } from "ts-auto-mock";
+import { method, On } from "ts-auto-mock/extension";
+import { ConfigurationService } from "../../configuration/configuration.service";
+import { DivisionsMatchesIngestionService } from "./divisions-matches-ingestion-service";
+import { PartialDeep } from "ts-auto-mock/partial/partial";
 
 
 describe('DivisionsMatchesIngestionService', () => {
@@ -14,7 +15,7 @@ describe('DivisionsMatchesIngestionService', () => {
           return [11, 22, 33]
         },
         get runtimeConfiguration() {
-          return {weekName: 2}
+          return { weekName: 2 }
         }
       })
 
@@ -58,19 +59,19 @@ describe('DivisionsMatchesIngestionService', () => {
       await divisionsIngestionService.ingest();
       expect(divisionsIngestionService).toBeDefined();
       expect(findAllMatchesMock).toHaveBeenCalledTimes(3);
-      expect(findAllMatchesMock).toHaveBeenNthCalledWith(1, {"divisionId": 11, "withDetails": true});
-      expect(findAllMatchesMock).toHaveBeenNthCalledWith(2, {"divisionId": 22, "withDetails": true});
-      expect(findAllMatchesMock).toHaveBeenNthCalledWith(3, {"divisionId": 33, "withDetails": true});
-      expect(divisionsIngestionService.model.matches.length).toEqual(2);
+      expect(findAllMatchesMock).toHaveBeenNthCalledWith(1, { "divisionId": 11, "withDetails": true });
+      expect(findAllMatchesMock).toHaveBeenNthCalledWith(2, { "divisionId": 22, "withDetails": true });
+      expect(findAllMatchesMock).toHaveBeenNthCalledWith(3, { "divisionId": 33, "withDetails": true });
+      expect(divisionsIngestionService.model.matches.length).toEqual(3);
 
     })
     it('should not crash is no results returned for a division', async () => {
       const configMock = createMock<ConfigurationService>({
-        get allDivisions(): number[] {
+        get allDivisions(): PartialObjectDeep<number[]> {
           return [11]
         },
         get runtimeConfiguration() {
-          return {weekName: 2}
+          return { weekName: 2 }
         }
       })
 

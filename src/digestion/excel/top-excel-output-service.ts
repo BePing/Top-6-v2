@@ -34,7 +34,7 @@ export class TopExcelOutputService implements DigestingServiceContract {
     for (const level of this.configurationService.allLevels) {
       const worksheet = workbook.addWorksheet('classement-' + level.replace('/', '').toLowerCase());
       const table = this.createEmptyTableInWorksheet(worksheet);
-      const points = this.consolidateTopService.getTopForRegionAndLevel(region, level, this.configurationService.runtimeConfiguration.playersInTop);
+      const points = this.consolidateTopService.getTopForRegionAndLevel(region, level, this.configurationService.runtimeConfiguration.weekName, this.configurationService.runtimeConfiguration.playersInTop);
       for (const [index, pos] of points.entries()) {
         table.addRow([
           index + 1,
