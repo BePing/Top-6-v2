@@ -1,37 +1,30 @@
 import {DigestingServiceContract} from "../digesting-service-contract";
 import {ConsolidateTopService} from "../../processing/top/4-consolidate-tops/consolidate-top-service";
-import {Service} from "typedi";
+import {Inject, Service} from "typedi";
 import {toTitleCase} from "../../common/text-helper";
 import {ConfigurationService} from "../../configuration/configuration.service";
-import * as FB from 'fb';
 import {LoggingService} from "../../common";
+import {AxiosInstance} from 'axios';
 
 @Service()
 export class FacebookPostingService implements DigestingServiceContract {
   constructor(
     private readonly consolidateTopService: ConsolidateTopService,
     private readonly configurationService: ConfigurationService,
-    private readonly loggingService: LoggingService
+    private readonly loggingService: LoggingService,
+    @Inject('axios') private readonly axios: AxiosInstance,
   ) {
   }
 
   async digest(): Promise<void> {
     this.loggingService.info('Posting on facebook...');
-    const text = this.generateText();
-    FB.setAccessToken(this.configurationService.facebookConfig.access_token);
     try {
-      const postid = await (new Promise((resolve, reject) => {
-        FB.api(this.configurationService.facebookConfig.page_id + '/feed', 'post', {
-          message: text,
-          published: true,
-        }, (res) => {
-          if (!res || res.error) {
-            reject(new Error('Error when posting to Facebook. ' + res.error.message));
-          }
-          resolve(res.id);
-        })
-      }));
-      this.loggingService.trace('Posted on facebook: ' + postid);
+      const payload = {
+        content: this.generateText(),
+      }
+
+      const response = await this.axios.post('https://hook.eu2.make.com/n8urup72oejw7uljo0iuo919etdfca9e', payload)
+      this.loggingService.trace('Response from make: ', response.data);
     } catch (e) {
       this.loggingService.error(e.message);
     }

@@ -44,6 +44,7 @@ const run = async () => {
       factory: () => new DivisionsApi(TabtClientConfigFactory.createConfiguration(configService.bepingUrl), null, createAxiosInstance()),
     },
     {id: 'randomip', value: randomIP},
+    {id: 'axios', value: createAxiosInstance()}
   ]);
 
   await Container.get(IngestionService).ingest();
