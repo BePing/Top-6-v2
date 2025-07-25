@@ -59,7 +59,7 @@
     "fb": "2.0.0",
     "firebase-admin": "11.10.1",
     "lodash": "4.17.21",
-    "node-mailjet": "6.0.4",
+    "node-mailjet": "6.0.9",
     "pino": "8.15.1",
     "pino-pretty": "10.2.0",
     "pino-tee": "0.3.0",
