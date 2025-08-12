@@ -11,7 +11,11 @@ export interface Configuration {
   email: Mailing;
   facebook?: FacebookPage;
   output: string;
-  firebase?: ServiceAccount
+  firebase?: ServiceAccount;
+  openai?: {
+    api_key: string;
+    enabled: boolean;
+  }
 }
 
 export type RegionsDefinition = {

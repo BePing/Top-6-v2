@@ -1,4 +1,77 @@
 {
-  "indexes": [],
-  "fieldOverrides": []
+  "indexes": [
+    {
+      "collectionGroup": "rankings",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "weekName", "order": "DESCENDING" },
+        { "fieldPath": "region", "order": "ASCENDING" },
+        { "fieldPath": "level", "order": "ASCENDING" },
+        { "fieldPath": "position", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "rankings",
+      "queryScope": "COLLECTION", 
+      "fields": [
+        { "fieldPath": "region", "order": "ASCENDING" },
+        { "fieldPath": "level", "order": "ASCENDING" },
+        { "fieldPath": "weekName", "order": "DESCENDING" },
+        { "fieldPath": "points.total", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "rankings",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "clubIndex", "order": "ASCENDING" },
+        { "fieldPath": "weekName", "order": "DESCENDING" },
+        { "fieldPath": "points.total", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "rankings",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "uniqueIndex", "order": "ASCENDING" },
+        { "fieldPath": "weekName", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "players-points-details",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "levelAttributed", "order": "ASCENDING" },
+        { "fieldPath": "weekName", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "region-summaries", 
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "region", "order": "ASCENDING" },
+        { "fieldPath": "lastUpdated", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": [
+    {
+      "collectionGroup": "rankings",
+      "fieldPath": "points.total",
+      "ttl": false,
+      "indexes": [
+        { "order": "ASCENDING", "queryScope": "COLLECTION" },
+        { "order": "DESCENDING", "queryScope": "COLLECTION" }
+      ]
+    },
+    {
+      "collectionGroup": "rankings",
+      "fieldPath": "position",
+      "ttl": false,
+      "indexes": [
+        { "order": "ASCENDING", "queryScope": "COLLECTION" },
+        { "order": "DESCENDING", "queryScope": "COLLECTION" }
+      ]
+    }
+  ]
 }

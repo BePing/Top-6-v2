@@ -7,12 +7,25 @@
         "node_modules",
         ".git",
         "firebase-debug.log",
-        "firebase-debug.*.log"
+        "firebase-debug.*.log",
+        "*.local",
+        ".runtimeconfig.json",
+        ".env*",
+        "coverage/**",
+        "tmp/**",
+        "build/**",
+        "src/**/*.spec.ts",
+        "src/**/*.test.ts",
+        "mocks/**",
+        "FIRESTORE_STRUCTURE.md",
+        "README.md",
+        "CHANGELOG.md"
       ],
       "predeploy": [
         "npm run lint",
         "npm run build"
-      ]
+      ],
+      "runtime": "nodejs18"
     }
   ],
   "firestore": {
@@ -27,11 +40,61 @@
       "port": 8080
     },
     "ui": {
-      "enabled": true
+      "enabled": true,
+      "port": 4000
     },
     "pubsub": {
       "port": 8085
     },
+    "auth": {
+      "port": 9099
+    },
+    "storage": {
+      "port": 9199
+    },
     "singleProjectMode": true
+  },
+  "hosting": {
+    "public": "frontend/dist",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ],
+    "headers": [
+      {
+        "source": "**/*.@(eot|otf|ttf|ttc|woff|font.css)",
+        "headers": [
+          {
+            "key": "Access-Control-Allow-Origin",
+            "value": "*"
+          }
+        ]
+      },
+      {
+        "source": "**/*.@(jpg|jpeg|gif|png|svg|webp)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "max-age=7200"
+          }
+        ]
+      },
+      {
+        "source": "**/*.@(js|css)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "max-age=604800"
+          }
+        ]
+      }
+    ]
   }
 }

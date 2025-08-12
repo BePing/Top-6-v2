@@ -23,6 +23,7 @@ export class DivisionsMatchesIngestionService implements IngestionServiceContrac
     for (const divisionId of this.config.allDivisions) {
       const {data: matches} = await this.matchesApi.findAllMatches({
         divisionId,
+        xTabtSeason: '25',
         withDetails: true,
       });
       this._model.matches.push(...matches);

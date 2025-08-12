@@ -13,7 +13,14 @@ import {TabtClientConfigFactory} from "./common/tabt-client-config-factory";
 import axios, {AxiosInstance} from "axios";
 import axiosRetry from "axios-retry";
 
+// Load environment variables from .env file
 dotenv.config();
+
+// Debug: Log environment variables loading status
+console.log('🔧 Environment variables loaded:');
+console.log(`   - GOOGLE_SERVICE_ACCOUNT_JSON_CREDENTIALS: ${process.env.GOOGLE_SERVICE_ACCOUNT_JSON_CREDENTIALS ? 'SET' : 'NOT SET'}`);
+console.log(`   - OPENAI_API_KEY: ${process.env.OPENAI_API_KEY ? 'SET' : 'NOT SET'}`);
+console.log(`   - NODE_ENV: ${process.env.NODE_ENV || 'NOT SET'}`);
 
 function createAxiosInstance() {
   const axiosInstance: AxiosInstance = axios.create();
@@ -51,7 +58,11 @@ const run = async () => {
   await Container.get(ProcessingService).process();
   await Container.get(DigestingService).digest();
 }
-run();
+
+// Run if this is the main module
+if (require.main === module) {
+  run().catch(console.error);
+}
 
 
 

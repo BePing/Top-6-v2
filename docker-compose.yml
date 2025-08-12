@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  top-6:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: top-6-app
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+    volumes:
+      - ./logs:/app/logs
+      - ./tmp:/app/tmp
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD", "node", "-e", "console.log('Health check passed')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  top-6-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    container_name: top-6-dev
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - ./src:/app/src
+      - ./logs:/app/logs
+      - ./tmp:/app/tmp
+    ports:
+      - "3001:3000"
+    command: npm run start:dev

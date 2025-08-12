@@ -9,6 +9,7 @@ import {FacebookPostingService} from "./facebook-post/facebook-posting-service";
 import {ExcelDebugOutputService} from "./excel-debug/excel-debug-output-service";
 import {FirestoreDigestionService} from "./firebase/firestore-digestion.service";
 import {FirebaseMessagingService} from "./firebase/firebase-messaging.service";
+import {AiSummaryService} from "./ai-summary/ai-summary.service";
 
 @Service()
 export class DigestingService {
@@ -24,6 +25,7 @@ export class DigestingService {
     private readonly facebookPostingService: FacebookPostingService,
     private readonly firestoreDigestionService: FirestoreDigestionService,
     private readonly firebaseMessagingService: FirebaseMessagingService,
+    private readonly aiSummaryService: AiSummaryService,
   ) {
   }
 
@@ -42,6 +44,11 @@ export class DigestingService {
       await this.facebookPostingService.digest();
     }
     if (this.configurationService.runtimeConfiguration.uploadToFirebase) {
+      if (this.aiSummaryService.isEnabled()) {
+        this.logging.info('AI summaries enabled - will be included in Firestore digestion');
+      } else {
+        this.logging.info('AI summaries disabled - continuing without AI analysis');
+      }
       await this.firestoreDigestionService.digest();
       await this.firebaseMessagingService.digest();
     }

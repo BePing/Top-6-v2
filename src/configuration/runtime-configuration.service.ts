@@ -54,7 +54,7 @@ export class RuntimeConfigurationService {
       },
       googleJSONCredentialsPath: {
         type: String,
-        default: '',
+        default: process.env.GOOGLE_SERVICE_ACCOUNT_JSON_CREDENTIALS || '',
       },
     }).flags;
   }
