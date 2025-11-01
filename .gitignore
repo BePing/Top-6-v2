@@ -30,5 +30,6 @@ build/
 /output/
 .env
 top-6-adminsdk.json
+firebase_sdk.json
 PASSWORD
 emulator-data
