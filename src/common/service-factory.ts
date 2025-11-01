@@ -11,7 +11,7 @@ import { DivisionsMatchesIngestionService } from '../ingestion/divisions-matches
 import { WeeklyMatchesSummaryIngestionService } from '../ingestion/weekly-matches-summary/weekly-matches-summary-ingestion-service';
 import { ProcessingService } from '../processing/processing-service';
 import { DigestingService } from '../digestion/digesting-service';
-import { ClubsApi, DivisionsApi, MatchesApi } from './index';
+import { ClubsApi, DivisionsApi, MatchesApi, SeasonsApi } from './index';
 import { TabtClientConfigFactory } from './tabt-client-config-factory';
 import { ErrorProcessingService } from '../processing/error-processing-service/error-processing-service';
 import { WeeklyMatchesSummaryProcessingService } from '../processing/weekly-matches-summary/weekly-matches-summary-processing-service';
@@ -76,14 +76,19 @@ export class ServiceFactory {
     const runtimeConfigService = this.createRuntimeConfigurationService();
     const googleCredentialsService = this.createGoogleCredentialsLoaderService();
     const firebaseAdmin = container.get<admin.app.App>('firebase.admin');
+    // Create SeasonsApi with default URL (will be updated after config loads)
+    const seasonsApi = this.createSeasonsApi('https://api-v2.beping.be');
 
-    return new ConfigurationService(
+    const configService = new ConfigurationService(
       loggingService,
       fileSystemHelper,
       runtimeConfigService,
       googleCredentialsService,
-      firebaseAdmin
+      firebaseAdmin,
+      seasonsApi
     );
+    
+    return configService;
   }
 
   static createClubsApi(): ClubsApi {
@@ -104,6 +109,27 @@ export class ServiceFactory {
     axiosInstance.defaults.baseURL = configService.bepingUrl;
     return new MatchesApi(
       TabtClientConfigFactory.createConfiguration(configService.bepingUrl),
+      null,
+      axiosInstance
+    );
+  }
+
+  static createSeasonsApi(baseUrl?: string): SeasonsApi {
+    const axiosInstance = container.get<AxiosInstance>('axios');
+    // Use provided URL, or try to get from config service, or use default
+    let url = baseUrl;
+    if (!url) {
+      try {
+        const configService = container.get<ConfigurationService>('ConfigurationService');
+        url = configService.bepingUrl;
+      } catch {
+        // ConfigurationService not available yet, use default
+        url = 'https://api-v2.beping.be';
+      }
+    }
+    axiosInstance.defaults.baseURL = url;
+    return new SeasonsApi(
+      TabtClientConfigFactory.createConfiguration(url),
       null,
       axiosInstance
     );

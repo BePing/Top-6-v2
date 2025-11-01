@@ -1,20 +1,21 @@
-import {IndividualMatchResult, Player, TeamMatchesEntry} from "../../../common";
+import {IndividualMatchResultDTO, PlayerDTO, TeamMatchesEntryDTO} from "../../../common";
 
 export class WoHelpers {
-  static checkIfAllIndividualMatchesAreWO(teamMatch: TeamMatchesEntry): boolean {
-    return teamMatch.MatchDetails?.IndividualMatchResults?.every((individualMatchResult: IndividualMatchResult) =>
-      (individualMatchResult.IsAwayForfeited && individualMatchResult.IsHomeForfeited) ||
+  static checkIfAllIndividualMatchesAreWO(teamMatch: TeamMatchesEntryDTO): boolean {
+    return teamMatch.matchDetails?.individualMatchResults?.every((individualMatchResult: IndividualMatchResultDTO) =>
+      (individualMatchResult.isAwayForfeited && individualMatchResult.isHomeForfeited) ||
       (
-        !Object.hasOwn(individualMatchResult, 'IsAwayForfeited') &&
-        !Object.hasOwn(individualMatchResult, 'IsHomeForfeited') &&
-        !Object.hasOwn(individualMatchResult, 'HomeSetCount') &&
-        !Object.hasOwn(individualMatchResult, 'AwaySetCount')
+        !Object.hasOwn(individualMatchResult, 'isAwayForfeited') &&
+        !Object.hasOwn(individualMatchResult, 'isHomeForfeited') &&
+        !Object.hasOwn(individualMatchResult, 'homeSetCount') &&
+        !Object.hasOwn(individualMatchResult, 'awaySetCount')
       )
     ) ?? false;
   }
 
-  static checkIfAllPlayersAreWO(teamMatch: TeamMatchesEntry, team: 'Away' | 'Home'): boolean {
-    return teamMatch.MatchDetails?.[team + 'Player']?.Players?.every((player: Player) => player.IsForfeited) ?? false;
+  static checkIfAllPlayersAreWO(teamMatch: TeamMatchesEntryDTO, team: 'Away' | 'Home'): boolean {
+    const teamKey = team === 'Away' ? 'awayPlayers' : 'homePlayers';
+    return teamMatch.matchDetails?.[teamKey]?.players?.every((player: PlayerDTO) => player.isForfeited) ?? false;
   }
 
 }

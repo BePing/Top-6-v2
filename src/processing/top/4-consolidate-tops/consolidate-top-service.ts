@@ -19,7 +19,7 @@ export class ConsolidateTopService implements ProcessingServiceContract<Consolid
     private readonly playersPointsProcessingService: PlayersPointsProcessingService,
     private readonly sumPointsService: SumPointsService,
     private readonly levelAttributionService: LevelAttributionService,
-    private readonly clubIngestion: ClubsIngestionService,
+    public readonly clubIngestion: ClubsIngestionService, // Made public to allow access from FirestoreDigestionService
   ) {
   }
 
@@ -43,10 +43,15 @@ export class ConsolidateTopService implements ProcessingServiceContract<Consolid
           for (const uniqueIndex of playersForRegionInLevel) {
             const countedPlayerPoints = this.sumPointsService.getPlayerPoints(uniqueIndex, weekName);
             const playerPoints = this.playersPointsProcessingService.getPlayerResultsUntilWeekName(uniqueIndex, weekName);
+            const club = this.clubIngestion.getClubWithUniqueIndex(playerPoints.club);
+            if (!club) {
+              this.loggingService.warn(`Club with uniqueIndex ${playerPoints.club} not found for player ${playerPoints.name}`);
+              continue;
+            }
             top.push({
               uniqueIndex,
               clubIndex: playerPoints.club,
-              clubName: this.clubIngestion.getClubWithUniqueIndex(playerPoints.club).LongName,
+              clubName: club.longName,
               name: playerPoints.name,
               points: countedPlayerPoints,
             });

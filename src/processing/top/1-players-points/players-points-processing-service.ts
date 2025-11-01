@@ -2,7 +2,7 @@ import {ProcessingServiceContract} from "../../processing-service-contract";
 import {
   DivisionsMatchesIngestionService,
 } from "../../../ingestion/divisions-matches/divisions-matches-ingestion-service";
-import {LoggingService, Maybe, Player, TeamMatchesEntry} from "../../../common";
+import {LoggingService, Maybe, PlayerDTO, TeamMatchesEntryDTO} from "../../../common";
 import {ConfigurationService} from "../../../configuration/configuration.service";
 import {TeamMatchEntryHelpers} from "../../../common/team-match-entry-helpers";
 import {PlayerPoint, PlayerPoints, PlayersPointsProcessingModel} from "./players-points-processing-model";
@@ -53,21 +53,21 @@ export class PlayersPointsProcessingService implements ProcessingServiceContract
         continue;
       }
 
-      if (!match.Score) {
+      if (!match.score) {
         continue;
       }
 
       const teamToCheck = [];
-      if (clubs.includes(match.HomeClub)) {
+      if (clubs.includes(match.homeClub)) {
         teamToCheck.push('Home');
       }
-      if (clubs.includes(match.AwayClub)) {
+      if (clubs.includes(match.awayClub)) {
         teamToCheck.push('Away');
       }
 
       for (const currentTeam of teamToCheck) {
         const oppositeTeam = currentTeam === 'Home' ? 'Away' : 'Home';
-        if (match.Score.includes('sm')) {
+        if (match.score.includes('sm')) {
           this.handleSmMatch(match, currentTeam)
           continue;
         }
@@ -76,9 +76,13 @@ export class PlayersPointsProcessingService implements ProcessingServiceContract
         // SM
         // currentTeam not withdrawn
 
+        const isOppositeForfeited = oppositeTeam === 'Home' ? match.isHomeForfeited : match.isAwayForfeited;
+        const isCurrentWithdrawn = currentTeam === 'Home' ? match.isHomeWithdrawn : match.isAwayWithdrawn;
+        const isOppositeWithdrawn = oppositeTeam === 'Home' ? match.isHomeWithdrawn : match.isAwayWithdrawn;
+
         if (
-          match[`Is${oppositeTeam}Forfeited`] &&
-          (!match[`Is${currentTeam}Withdrawn`] || (match[`Is${currentTeam}Withdrawn`] && match[`Is${oppositeTeam}Withdrawn`])) &&
+          isOppositeForfeited &&
+          (!isCurrentWithdrawn || (isCurrentWithdrawn && isOppositeWithdrawn)) &&
           (WoHelpers.checkIfAllIndividualMatchesAreWO(match) || WoHelpers.checkIfAllPlayersAreWO(match, oppositeTeam))
         ) {
           // Match hasn't been played
@@ -92,14 +96,14 @@ export class PlayersPointsProcessingService implements ProcessingServiceContract
     this.applyPointsOverrides();
   }
 
-  private handleByeMatch(match: TeamMatchesEntry): void {
-    const players = (match.HomeClub === '-' && match.HomeTeam.indexOf('Bye') > -1) ?
-      match.MatchDetails?.AwayPlayers?.Players ?? [] :
-      match.MatchDetails?.HomePlayers?.Players ?? [];
-    const club = (match.HomeClub === '-' && match.HomeTeam.indexOf('Bye') > -1) ? match.AwayClub : match.HomeClub;
+  private handleByeMatch(match: TeamMatchesEntryDTO): void {
+    const players = (match.homeClub === '-' && match.homeTeam.indexOf('Bye') > -1) ?
+      match.matchDetails?.awayPlayers?.players ?? [] :
+      match.matchDetails?.homePlayers?.players ?? [];
+    const club = (match.homeClub === '-' && match.homeTeam.indexOf('Bye') > -1) ? match.awayClub : match.homeClub;
     for (const player of players) {
-      const name = `${player.LastName} ${player.FirstName}`;
-      this.addMatchToPlayer(player.UniqueIndex, name, club, match.DivisionId, Number(match.WeekName), match.MatchId, match.MatchUniqueId, 4, 0);
+      const name = `${player.lastName} ${player.firstName}`;
+      this.addMatchToPlayer(player.uniqueIndex, name, club, match.divisionId, Number(match.weekName), match.matchId, match.matchUniqueId, 4, 0);
     }
   }
 
@@ -168,17 +172,19 @@ export class PlayersPointsProcessingService implements ProcessingServiceContract
     this._model[uniqueIndex].points.push(newPlayerPoint)
   }
 
-  private handleForfeitedMatch(match: TeamMatchesEntry, currentTeam: string): void {
-    const players: Player[] = match.MatchDetails?.[currentTeam + 'Players']?.Players ?? [];
+  private handleForfeitedMatch(match: TeamMatchesEntryDTO, currentTeam: string): void {
+    const teamKey = currentTeam === 'Home' ? 'homePlayers' : 'awayPlayers';
+    const clubKey = currentTeam === 'Home' ? 'homeClub' : 'awayClub';
+    const players: PlayerDTO[] = match.matchDetails?.[teamKey]?.players ?? [];
     for (const player of players) {
       this.addMatchToPlayer(
-        player.UniqueIndex,
-        player.LastName + ' ' + player.FirstName,
-        match[currentTeam + 'Club'],
-        match.DivisionId,
-        Number(match.WeekName),
-        match.MatchId,
-        match.MatchUniqueId,
+        player.uniqueIndex,
+        player.lastName + ' ' + player.firstName,
+        match[clubKey],
+        match.divisionId,
+        Number(match.weekName),
+        match.matchId,
+        match.matchUniqueId,
         0,
         4,
       );
@@ -186,30 +192,33 @@ export class PlayersPointsProcessingService implements ProcessingServiceContract
 
   }
 
-  private handleMatch(match: TeamMatchesEntry, currentTeam: 'Away' | 'Home'): void {
-    const players: Player[] = match.MatchDetails?.[currentTeam + 'Players']?.Players ?? [];
+  private handleMatch(match: TeamMatchesEntryDTO, currentTeam: 'Away' | 'Home'): void {
+    const teamKey = currentTeam === 'Home' ? 'homePlayers' : 'awayPlayers';
+    const clubKey = currentTeam === 'Home' ? 'homeClub' : 'awayClub';
     const opposite = currentTeam === 'Home' ? 'Away' : 'Home';
+    const oppositeTeamKey = opposite === 'Home' ? 'homePlayers' : 'awayPlayers';
+    const players: PlayerDTO[] = match.matchDetails?.[teamKey]?.players ?? [];
     for (const player of players) {
       // If a player is in an exclusion list, skip it
-      if (this.configurationService.isPlayerExcluded(player.UniqueIndex)) {
-        this.loggingService.info(`Player ${player.LastName} ${player.FirstName} is excluded from points calculation`);
+      if (this.configurationService.isPlayerExcluded(player.uniqueIndex)) {
+        this.loggingService.info(`Player ${player.lastName} ${player.firstName} is excluded from points calculation`);
         continue;
       }
 
-      const victories = PointsHelper.countVictoriesForPlayer(player.UniqueIndex, match.MatchDetails?.IndividualMatchResults ?? [], currentTeam);
+      const victories = PointsHelper.countVictoriesForPlayer(player.uniqueIndex, match.matchDetails?.individualMatchResults ?? [], currentTeam);
       const forfeit = PointsHelper.countForfeitForPlayer(
-        player.UniqueIndex,
-        match.MatchDetails?.IndividualMatchResults ?? [],
-        match.MatchDetails[`${opposite}Players`].Players ?? [],
+        player.uniqueIndex,
+        match.matchDetails?.individualMatchResults ?? [],
+        match.matchDetails?.[oppositeTeamKey]?.players ?? [],
         currentTeam);
       this.addMatchToPlayer(
-        player.UniqueIndex,
-        player.LastName + ' ' + player.FirstName,
-        match[currentTeam + 'Club'],
-        match.DivisionId,
-        Number(match.WeekName),
-        match.MatchId,
-        match.MatchUniqueId,
+        player.uniqueIndex,
+        player.lastName + ' ' + player.firstName,
+        match[clubKey],
+        match.divisionId,
+        Number(match.weekName),
+        match.matchId,
+        match.matchUniqueId,
         victories,
         forfeit,
       )
@@ -224,25 +233,28 @@ export class PlayersPointsProcessingService implements ProcessingServiceContract
     }
   }
 
-  private handleSmMatch(match: TeamMatchesEntry, currentTeam: string): void {
+  private handleSmMatch(match: TeamMatchesEntryDTO, currentTeam: string): void {
     // Score modified by an Administrator. Bad aligment or so
-    const scores = match.Score.match(/^([0-9]{1,2})-([0-9]{1,2})/);
+    const scores = match.score?.match(/^([0-9]{1,2})-([0-9]{1,2})/);
+    if (!scores) return;
     const positionScore = Number(currentTeam === 'Home' ? scores[1] : scores[2]);
     const oppositeScore = Number(currentTeam === 'Home' ? scores[2] : scores[1]);
-    const players: Player[] = match.MatchDetails?.[currentTeam + 'Players']?.Players ?? [];
+    const teamKey = currentTeam === 'Home' ? 'homePlayers' : 'awayPlayers';
+    const clubKey = currentTeam === 'Home' ? 'homeClub' : 'awayClub';
+    const players: PlayerDTO[] = match.matchDetails?.[teamKey]?.players ?? [];
 
     //Check if the results of the position team is the best score possible
     if (positionScore === (positionScore + oppositeScore)) {
       for (const player of players) {
-        player.VictoryCount = 0;
+        // Note: PlayerDTO doesn't have mutable VictoryCount, so we skip setting it
         this.addMatchToPlayer(
-          player.UniqueIndex,
-          player.LastName + ' ' + player.FirstName,
-          match[currentTeam + 'Club'],
-          match.DivisionId,
-          Number(match.WeekName),
-          match.MatchId,
-          match.MatchUniqueId,
+          player.uniqueIndex,
+          player.lastName + ' ' + player.firstName,
+          match[clubKey],
+          match.divisionId,
+          Number(match.weekName),
+          match.matchId,
+          match.matchUniqueId,
           0,
           4,
         );
@@ -251,7 +263,7 @@ export class PlayersPointsProcessingService implements ProcessingServiceContract
       return;
     } else {
       if (positionScore !== 0) {
-        this.loggingService.warn(`Le match ${match.MatchId} a un score modifié, mais le score n'est pas le score maximum de défaite. Aucune décision prise pour le top6.`);
+        this.loggingService.warn(`Le match ${match.matchId} a un score modifié, mais le score n'est pas le score maximum de défaite. Aucune décision prise pour le top6.`);
       }
     }
   }

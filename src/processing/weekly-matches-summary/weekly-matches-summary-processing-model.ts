@@ -1,5 +1,5 @@
 import {TOP_REGIONS} from "../../configuration/configuration.model";
-import {DivisionEntryLevelTabt, TeamMatchesEntryDivisionCategoryTabt} from "../../common";
+import {DivisionEntryDtoV1LevelTabt, TeamMatchesEntryDTODivisionCategoryTabt} from "../../common";
 
 export enum PlayerCategory {
   MEN = 1,
@@ -28,9 +28,9 @@ export interface WeeklyMatchSummary {
 export interface WeeklyMatchesSummaryProcessingModel {
   matches: {
     [x in TOP_REGIONS]?: {
-      [x in DivisionEntryLevelTabt]?: {
+      [x in DivisionEntryDtoV1LevelTabt]?: {
         [x in string]: {                                                        // Division name
-          [x in TeamMatchesEntryDivisionCategoryTabt]?: WeeklyMatchSummary[]
+          [x in TeamMatchesEntryDTODivisionCategoryTabt]?: WeeklyMatchSummary[]
         }
       }
     }

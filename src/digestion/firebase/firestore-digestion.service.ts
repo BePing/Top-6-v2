@@ -450,8 +450,8 @@ export class FirestoreDigestionService implements DigestingServiceContract {
 
   private getClubName(clubIndex: string): string {
     try {
-      // Try to get club name from clubs ingestion service through consolidate service
-      return this.consolidateTopService['clubIngestion'].getClubWithUniqueIndex(clubIndex)?.LongName || clubIndex;
+      // Access clubIngestion through public property instead of bracket notation
+      return this.consolidateTopService.clubIngestion.getClubWithUniqueIndex(clubIndex)?.longName || clubIndex;
     } catch {
       return clubIndex;
     }

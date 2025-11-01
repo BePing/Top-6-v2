@@ -1,6 +1,6 @@
 import * as path from "path";
 
-import {FileSystemHelper, LoggingService} from "../common";
+import {FileSystemHelper, LoggingService, SeasonsApi} from "../common";
 import {
   Configuration,
   FacebookPage,
@@ -19,6 +19,7 @@ import {GoogleCredentialsLoaderService} from './google-credentials-loader.servic
 export class ConfigurationService {
 
   private _configuration: Configuration;
+  private _currentSeason: number | null = null;
 
   readonly dateStart = new Date();
 
@@ -26,8 +27,11 @@ export class ConfigurationService {
     private readonly _loggingService: LoggingService,
     private readonly _fileSystemHelper: FileSystemHelper,
     private readonly commandConfiguration: RuntimeConfigurationService,
-    private readonly googleCredentialsLoader: GoogleCredentialsLoaderService,
-    private _firebaseAdmin: admin.app.App) {
+    // @ts-ignore - Kept for potential future use (currently commented out in init)
+    private readonly _googleCredentialsLoader: GoogleCredentialsLoaderService,
+    private _firebaseAdmin: admin.app.App,
+    private readonly seasonsApi?: SeasonsApi,
+  ) {
   }
 
   async init(): Promise<void> {
@@ -38,9 +42,36 @@ export class ConfigurationService {
     // await this.googleCredentialsLoader.init();
 
     await this.loadConfigFromFirestore();
+    await this.loadCurrentSeason();
 
     await this.logConfigAsync();
     await this.initFileSystemAsync();
+  }
+
+  private async loadCurrentSeason(): Promise<void> {
+    try {
+      if (this.seasonsApi) {
+        // Update axios base URL if it's different from config
+        const axiosInstance = (this.seasonsApi as any).axios;
+        if (axiosInstance && axiosInstance.defaults.baseURL !== this.bepingUrl) {
+          axiosInstance.defaults.baseURL = this.bepingUrl;
+        }
+        const { data: currentSeason } = await this.seasonsApi.findCurrentSeason();
+        this._currentSeason = currentSeason.season;
+        this._loggingService.info(`Current season loaded: ${this._currentSeason}`);
+      } else {
+        // Fallback to hardcoded season if SeasonsApi not available
+        this._currentSeason =     26;
+        this._loggingService.warn('SeasonsApi not available, using fallback season: 26');
+      }
+    } catch (error) {
+      this._loggingService.warn(`Failed to load current season: ${error instanceof Error ? error.message : 'Unknown error'}. Using fallback: 26`);
+      this._currentSeason = 26;
+    }
+  }
+
+  get currentSeason(): number {
+    return this._currentSeason || 26;
   }
 
   private async logConfigAsync(): Promise<void> {

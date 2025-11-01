@@ -3,3 +3,4 @@ export * from './logging-service';
 export * from './tabt-client';
 export * from './maybe';
 export * from './di-container';
+export * from './error-utils';

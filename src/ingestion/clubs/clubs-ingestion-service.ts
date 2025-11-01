@@ -19,7 +19,14 @@ export class ClubsIngestionService implements IngestionServiceContract<ClubsInge
     this.logging.info('Fetching clubs info');
     const clubs = await this.clubsApi.findAllClubs();
     this._model = {
-      clubs: clubs.data.filter((club) => this.config.allClubsUniqueIndex.includes(club.UniqueIndex))
+      clubs: clubs.data.filter((club) => {
+        const uniqueIndex = club.uniqueIndex;
+        if (!uniqueIndex) {
+          this.logging.warn(`Club found without uniqueIndex: ${JSON.stringify(club)}`);
+          return false;
+        }
+        return this.config.allClubsUniqueIndex.includes(uniqueIndex);
+      })
     }
     this.logging.trace('✅  done');
   }
@@ -29,6 +36,6 @@ export class ClubsIngestionService implements IngestionServiceContract<ClubsInge
   }
 
   getClubWithUniqueIndex(uniqueIndex: string): ClubDto | undefined {
-    return this._model.clubs.find((c) => c.UniqueIndex === uniqueIndex);
+    return this._model.clubs.find((c) => c.uniqueIndex === uniqueIndex);
   }
 }

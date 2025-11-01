@@ -1,7 +1,7 @@
-import {TeamMatchesEntry} from "./tabt-client";
+import {TeamMatchesEntryDTO} from "./tabt-client";
 
 export class TeamMatchEntryHelpers {
-  isBye(match: TeamMatchesEntry): boolean {
-    return (match.HomeClub === '-' && match.HomeTeam.indexOf('Bye') > -1) || (match.AwayClub === '-' && match.AwayTeam.indexOf('Bye') > -1);
+  isBye(match: TeamMatchesEntryDTO): boolean {
+    return (match.homeClub === '-' && match.homeTeam.indexOf('Bye') > -1) || (match.awayClub === '-' && match.awayTeam.indexOf('Bye') > -1);
   };
 }

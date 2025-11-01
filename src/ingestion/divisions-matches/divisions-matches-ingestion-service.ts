@@ -1,6 +1,6 @@
 import {IngestionServiceContract} from "../ingestion-service-contract";
 import {ConfigurationService} from "../../configuration/configuration.service";
-import {LoggingService, MatchesApi} from "../../common";
+import {LoggingService, MatchesApi, extractErrorMessage, extractErrorStatus, extractErrorData} from "../../common";
 import {DivisionsMatchesIngestionModel} from "./divisions-matches-ingestion-model";
 
 export class DivisionsMatchesIngestionService implements IngestionServiceContract<DivisionsMatchesIngestionModel> {
@@ -26,17 +26,26 @@ export class DivisionsMatchesIngestionService implements IngestionServiceContrac
       this.logging.info(`📥 Processing division ${processed}/${totalDivisions}: ${divisionId}`);
 
       try {
-        const {data: matches} = await this.matchesApi.findAllMatches({
+        const requestParams = {
           divisionId,
-          xTabtSeason: '25',
+          xTabtSeason: this.config.currentSeason,
           withDetails: true,
-        });
+        };
+        this.logging.trace(`API Request for division ${divisionId}: ${JSON.stringify(requestParams)}`);
+        const {data: matches} = await this.matchesApi.findAllMatches(requestParams);
+        this.logging.trace(`API Response for division ${divisionId}: ${matches.length} matches returned`);
         this._model.matches.push(...matches);
-        // this._model.matches.push(...matches.filter(m => Number(m.WeekName) <= this.config.runtimeConfiguration.weekName));
+        // this._model.matches.push(...matches.filter(m => Number(m.weekName) <= this.config.runtimeConfiguration.weekName));
         total += matches.length;
         this.logging.info(`${matches.length > 0 ? '✅ ' : '⛔️'} Division ${divisionId} - ${matches.length} matches (Total: ${total})`);
-      } catch (error) {
-        this.logging.warn(`⚠️ Failed to fetch matches for division ${divisionId}: ${error.message}`);
+      } catch (error: unknown) {
+        const errorMessage = extractErrorMessage(error);
+        const errorStatus = extractErrorStatus(error);
+        const errorData = extractErrorData(error);
+        this.logging.warn(`⚠️ Failed to fetch matches for division ${divisionId}: [${errorStatus}] ${errorMessage}`);
+        if (errorData) {
+          this.logging.trace(`Full error response: ${JSON.stringify(errorData)}`);
+        }
       }
     }
     this.logging.info(`🎉 Completed ingestion: ${total} matches from ${totalDivisions} divisions`);
