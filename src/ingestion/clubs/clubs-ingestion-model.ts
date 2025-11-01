@@ -1,5 +1,5 @@
-import {ClubEntry} from "../../common/tabt-client";
+import {ClubDto} from "../../common/tabt-client";
 
 export interface ClubsIngestionModel {
-  clubs: ClubEntry[];
+  clubs: ClubDto[];
 }

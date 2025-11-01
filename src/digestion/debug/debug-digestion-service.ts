@@ -1,4 +1,3 @@
-import {Service} from "typedi";
 import {ConfigurationService} from "../../configuration/configuration.service";
 import {FileSystemHelper, LoggingService} from "../../common";
 import {DigestingServiceContract} from "../digesting-service-contract";
@@ -11,7 +10,6 @@ import {
 } from "../../processing/weekly-matches-summary/weekly-matches-summary-processing-service";
 import {DivisionsMatchesIngestionService} from '../../ingestion/divisions-matches/divisions-matches-ingestion-service';
 
-@Service()
 export class DebugDigestionService implements DigestingServiceContract {
   constructor(
     private readonly weeklyMatchesSummaryProcessingService: WeeklyMatchesSummaryProcessingService,

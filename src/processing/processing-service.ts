@@ -1,4 +1,3 @@
-import {Service} from "typedi";
 import {LoggingService} from "../common";
 import {ErrorProcessingService} from "./error-processing-service/error-processing-service";
 import {
@@ -7,7 +6,6 @@ import {
 import {ConfigurationService} from "../configuration/configuration.service";
 import {TopProcessingService} from './top/top-processing-service';
 
-@Service()
 export class ProcessingService {
 
   constructor(

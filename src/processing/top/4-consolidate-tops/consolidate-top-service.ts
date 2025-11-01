@@ -1,4 +1,3 @@
-import {Service} from "typedi";
 import {LoggingService} from "../../../common";
 import {PlayersPointsProcessingService} from "../1-players-points/players-points-processing-service";
 import {ProcessingServiceContract} from "../../processing-service-contract";
@@ -10,7 +9,6 @@ import {ConsolidateTopModel, PlayerPosition} from "./consolidate-top-model";
 import {PlayerPoints} from "../1-players-points/players-points-processing-model";
 import {ClubsIngestionService} from "../../../ingestion/clubs/clubs-ingestion-service";
 
-@Service()
 export class ConsolidateTopService implements ProcessingServiceContract<ConsolidateTopModel> {
 
   private _model: ConsolidateTopModel;

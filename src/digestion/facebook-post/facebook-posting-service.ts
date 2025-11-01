@@ -1,6 +1,5 @@
 import {DigestingServiceContract} from "../digesting-service-contract";
 import {ConsolidateTopService} from "../../processing/top/4-consolidate-tops/consolidate-top-service";
-import {Inject, Service} from "typedi";
 import {toTitleCase} from "../../common/text-helper";
 import {ConfigurationService} from "../../configuration/configuration.service";
 import {LoggingService} from "../../common";
@@ -8,14 +7,13 @@ import {AxiosInstance} from 'axios';
 import {AiSummaryService, RegionAnalytics} from "../ai-summary/ai-summary.service";
 import {PlayerPosition} from "../../processing/top/4-consolidate-tops/consolidate-top-model";
 
-@Service()
 export class FacebookPostingService implements DigestingServiceContract {
   constructor(
     private readonly consolidateTopService: ConsolidateTopService,
     private readonly configurationService: ConfigurationService,
     private readonly loggingService: LoggingService,
     private readonly aiSummaryService: AiSummaryService,
-    @Inject('axios') private readonly axios: AxiosInstance,
+    private readonly axios: AxiosInstance,
   ) {
   }
 

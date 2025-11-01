@@ -1,4 +1,3 @@
-import {Service} from "typedi";
 import {LoggingService} from "../../../common";
 import {PlayersPointsProcessingService} from "../1-players-points/players-points-processing-service";
 import {ProcessingServiceContract} from "../../processing-service-contract";
@@ -8,7 +7,6 @@ import {TOP_LEVEL, topLevelOrder} from "../../../configuration/configuration.mod
 import {PlayersLevelAttribution} from "./level-attribution-model";
 import {ConfigurationService} from '../../../configuration/configuration.service';
 
-@Service()
 export class LevelAttributionService implements ProcessingServiceContract<PlayersLevelAttribution> {
 
   private _model: PlayersLevelAttribution;

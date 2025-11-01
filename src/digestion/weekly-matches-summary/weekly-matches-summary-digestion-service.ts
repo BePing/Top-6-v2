@@ -1,4 +1,3 @@
-import {Service} from "typedi";
 import {DigestingServiceContract} from "../digesting-service-contract";
 import {ConfigurationService} from "../../configuration/configuration.service";
 import {FileSystemHelper, LoggingService} from "../../common";
@@ -19,7 +18,6 @@ enum CATEGORY_MAPPING {
 }
 
 
-@Service()
 export class WeeklyMatchesSummaryDigestionService implements DigestingServiceContract {
   constructor(
     private readonly weeklyMatchesSummaryProcessingModel: WeeklyMatchesSummaryProcessingService,

@@ -1,4 +1,3 @@
-import {Service} from "typedi";
 import {LoggingService} from "../../../common";
 import {PlayersPointsProcessingService} from "../1-players-points/players-points-processing-service";
 import {ProcessingServiceContract} from "../../processing-service-contract";
@@ -7,7 +6,6 @@ import {topLevelOrder} from "../../../configuration/configuration.model";
 import {PlayersTotalPoints, PlayerTotalPoints} from "./sum-points-model";
 import {ConfigurationService} from '../../../configuration/configuration.service';
 
-@Service()
 export class SumPointsService implements ProcessingServiceContract<PlayersTotalPoints> {
 
   private _model: PlayersTotalPoints;

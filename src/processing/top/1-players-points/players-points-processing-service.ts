@@ -1,4 +1,3 @@
-import {Service} from "typedi";
 import {ProcessingServiceContract} from "../../processing-service-contract";
 import {
   DivisionsMatchesIngestionService,
@@ -12,7 +11,6 @@ import {WoHelpers} from "./wo-helpers";
 import {PointsHelper} from "./points-helper";
 import {PlayerPointsOverrides} from '../../../configuration/configuration.model';
 
-@Service()
 export class PlayersPointsProcessingService implements ProcessingServiceContract<PlayersPointsProcessingModel> {
   private _model: PlayersPointsProcessingModel;
 
@@ -32,7 +30,21 @@ export class PlayersPointsProcessingService implements ProcessingServiceContract
   async process(): Promise<void> {
     this.loggingService.info(`Processing all matches for players points...`);
     this._model = {}
-    const matches = this.divisionsMatchesIngestionService.model.matches;
+
+    // Safety check for the ingestion model
+    const ingestionModel = this.divisionsMatchesIngestionService.model;
+    if (!ingestionModel) {
+      this.loggingService.error('Divisions matches ingestion model is undefined. Cannot process player points.');
+      return;
+    }
+
+    const matches = ingestionModel.matches;
+    if (!matches) {
+      this.loggingService.error('Matches array is undefined in ingestion model. Cannot process player points.');
+      return;
+    }
+
+    this.loggingService.info(`Processing ${matches.length} matches for player points...`);
     const clubs = this.configurationService.allClubsUniqueIndex;
 
     for (const match of matches) {

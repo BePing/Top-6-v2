@@ -1,7 +1,5 @@
-import {Service} from "typedi";
 import {IndividualMatchResult, Player, TeamMatchesEntry} from "../../../common";
 
-@Service()
 export class WoHelpers {
   static checkIfAllIndividualMatchesAreWO(teamMatch: TeamMatchesEntry): boolean {
     return teamMatch.MatchDetails?.IndividualMatchResults?.every((individualMatchResult: IndividualMatchResult) =>

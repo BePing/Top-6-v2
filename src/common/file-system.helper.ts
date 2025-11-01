@@ -1,9 +1,7 @@
-import {Service} from "typedi";
 import {LoggingService} from "./logging-service";
 import * as fs from 'fs';
 import * as path from 'path';
 
-@Service()
 export class FileSystemHelper {
 
   constructor(private readonly _loggingService: LoggingService) {

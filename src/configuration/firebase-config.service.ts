@@ -1,8 +1,7 @@
-import { Service } from "typedi";
 import admin from 'firebase-admin';
 import { LoggingService } from '../common';
 
-@Service()
+
 export class FirebaseConfigService {
   
   constructor(private readonly loggingService: LoggingService) {}

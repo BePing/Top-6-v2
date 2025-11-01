@@ -1,10 +1,7 @@
 import {RuntimeConfigurationService} from './runtime-configuration.service';
 import fs from 'fs';
 import {LoggingService} from '../common';
-import admin from 'firebase-admin';
-import {Container, Service} from 'typedi';
 
-@Service()
 export class GoogleCredentialsLoaderService {
 
   constructor(
@@ -15,7 +12,7 @@ export class GoogleCredentialsLoaderService {
 
   async init(): Promise<void> {
     this._loggingService.debug('🔧 Initializing Google Service Account...');
-    const pathToFile = this.commandConfigurationService.googleCredentialsJSONPath;
+    const pathToFile = this.commandConfigurationService.googleJSONCredentialsPath;
     
     if (!pathToFile) {
       this._loggingService.error('❌ Google service account path not found!');
@@ -36,10 +33,8 @@ export class GoogleCredentialsLoaderService {
       const apiKeys = fs.readFileSync(pathToFile, 'utf8');
       const credentials = JSON.parse(apiKeys);
       
-      Container.set(
-        'firebase.admin',
-        admin.initializeApp({credential: admin.credential.cert(credentials)}),
-      );
+      // Note: This will be set by the service factory instead
+      // The firebase admin app will be initialized and set in the main application
 
       this._loggingService.info('✅ Firebase Admin SDK initialized successfully');
       this._loggingService.trace(`🔑 Using project: ${credentials.project_id}`);

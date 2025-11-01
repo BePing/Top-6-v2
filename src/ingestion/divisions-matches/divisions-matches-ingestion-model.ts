@@ -1,5 +1,5 @@
-import {TeamMatchesEntry} from "../../common";
+import {TeamMatchesEntryDTO} from "../../common";
 
 export interface DivisionsMatchesIngestionModel {
-  matches: TeamMatchesEntry[]
+  matches: TeamMatchesEntryDTO[]
 }

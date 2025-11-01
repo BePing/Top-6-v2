@@ -1,11 +1,9 @@
-import {Service} from "typedi";
 import {PlayersPointsProcessingService} from "./1-players-points/players-points-processing-service";
 import {LevelAttributionService} from "./2-level-attribution/level-attribution-service";
 import {SumPointsService} from "./3-sum-points/sum-points-service";
 import {ConsolidateTopService} from "./4-consolidate-tops/consolidate-top-service";
 import {LoggingService} from '../../common';
 
-@Service()
 export class TopProcessingService {
   constructor(
     private readonly logging: LoggingService,

@@ -1,99 +1,70 @@
-import chalk from 'chalk';
-import {Service} from 'typedi';
-import {Logger, pino} from 'pino'
-import path from "path";
-import {formatISO9075} from "date-fns";
-import fs from "fs";
+import * as fs from 'fs';
+import * as path from 'path';
+import { formatISO9075 } from 'date-fns';
 
-enum LogLevel {
-  TRACE,
-  DEBUG,
-  INFO,
-  WARN,
-  ERROR
-}
-
-@Service()
 export class LoggingService {
-
-  private logger: Logger;
-  private logPath = path.join(process.cwd(), 'logs');
+  private logPath: string;
+  private logLevel: string = 'info';
 
   constructor() {
+    this.logPath = path.join(process.cwd(), 'logs');
     if (!fs.existsSync(this.logPath)) {
       fs.mkdirSync(this.logPath);
     }
-    this.logger = pino({
-      level: 'trace',
-      transport: {
-        targets: [
-          {
-            level: 'trace',
-            target: 'pino-pretty',
-            options: {
-              destination: 1,
-              ignore: 'pid,hostname,time',
-            }
-          },
-          {
-            level: 'trace',
-            target: 'pino/file',
-            options: {destination: path.join(process.cwd(), 'logs', formatISO9075(Date.now(), {format: 'basic'}) + '.log')} // On enregistre les logs dans un fichier main.log
-          }
-        ]
-      }
-    });
   }
 
-  trace(msg: string, ...args: object[]): void {
-    this.log(LogLevel.TRACE, msg, args);
+  private formatMessage(level: string, message: string, data?: unknown): string {
+    const timestamp = formatISO9075(new Date());
+    const levelUpper = level.toUpperCase().padEnd(5);
+    
+    if (data) {
+      return `[${timestamp}] ${levelUpper}: ${message} ${JSON.stringify(data, null, 2)}`;
+    }
+    return `[${timestamp}] ${levelUpper}: ${message}`;
   }
 
-  debug(msg: string, ...args: object[]): void {
-    this.log(LogLevel.DEBUG, msg, args);
+  private shouldLog(level: string): boolean {
+    const levels = ['trace', 'debug', 'info', 'warn', 'error'];
+    const currentLevelIndex = levels.indexOf(this.logLevel);
+    const messageLevelIndex = levels.indexOf(level);
+    return messageLevelIndex >= currentLevelIndex;
   }
 
-  info(msg: string, ...args: object[]): void {
-    this.log(LogLevel.INFO, msg, args);
-  }
-
-  warn(msg: string, ...args: object[]): void {
-    this.log(LogLevel.WARN, msg, args);
-  }
-
-  error(msg: string, ...args: object[]): void {
-    this.log(LogLevel.ERROR, msg, args);
-  }
-
-  private log(loglevel: LogLevel, msg: string, ...args: object[]) {
-    const indentedMessage = msg //this.getIndentedMessage(msg, indentation);
-    switch (loglevel) {
-      case LogLevel.TRACE:
-        this.logger.trace(chalk.grey(indentedMessage, args));
-        break;
-      case LogLevel.DEBUG:
-        this.logger.debug(chalk.whiteBright(indentedMessage, args));
-        break;
-      case LogLevel.INFO:
-        this.logger.info(chalk.blueBright(indentedMessage, args));
-        break;
-      case LogLevel.WARN:
-        this.logger.warn(chalk.yellowBright(indentedMessage, args));
-        break;
-      case LogLevel.ERROR:
-      default:
-        this.logger.error(chalk.redBright(indentedMessage, args));
-        break;
+  trace(message: string, data?: unknown): void {
+    if (this.shouldLog('trace')) {
+      console.log(this.formatMessage('trace', message, data));
     }
   }
 
-  getSeparatorLine(char = '-', count = 50): string {
-    return char.repeat(count);
+  debug(message: string, data?: unknown): void {
+    if (this.shouldLog('debug')) {
+      console.log(this.formatMessage('debug', message, data));
+    }
   }
 
-  getLayerInfo(layerName: string): string {
-    const line = this.getSeparatorLine('=');
-    return `\n${line}\n${layerName}\n${line}`;
+  info(message: string, data?: unknown): void {
+    if (this.shouldLog('info')) {
+      console.log(this.formatMessage('info', message, data));
+    }
   }
 
+  warn(message: string, data?: unknown): void {
+    if (this.shouldLog('warn')) {
+      console.warn(this.formatMessage('warn', message, data));
+    }
+  }
+
+  error(message: string, data?: unknown): void {
+    if (this.shouldLog('error')) {
+      console.error(this.formatMessage('error', message, data));
+    }
+  }
+
+  getLayerInfo(layer: string): string {
+    return `=== ${layer} ===`;
+  }
+
+  setLogLevel(level: string): void {
+    this.logLevel = level;
+  }
 }

@@ -1,6 +1,5 @@
 import {ProcessingServiceContract} from "../processing-service-contract";
 import {WeeklyMatchesSummaryProcessingModel, WeeklyMatchSummary} from "./weekly-matches-summary-processing-model";
-import {Service} from "typedi";
 import {
   WeeklyMatchesSummaryIngestionService
 } from "../../ingestion/weekly-matches-summary/weekly-matches-summary-ingestion-service";
@@ -13,7 +12,6 @@ import {
 import {TOP_REGIONS} from "../../configuration/configuration.model";
 import {DivisionsIngestionService} from "../../ingestion/divisions/divisions-ingestion-service";
 
-@Service()
 export class WeeklyMatchesSummaryProcessingService implements ProcessingServiceContract<WeeklyMatchesSummaryProcessingModel> {
   private _model: WeeklyMatchesSummaryProcessingModel;
 

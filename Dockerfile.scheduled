@@ -1,4 +1,4 @@
-# Multi-stage build for production
+# Cron-based scheduler Dockerfile for scheduled runs
 FROM node:20-alpine AS builder
 
 # Set working directory
@@ -17,12 +17,15 @@ COPY src/ ./src/
 # Build the application
 RUN npm run build:release
 
-# Production stage
+# Production stage with cron
 FROM node:20-alpine AS production
 
+# Install cron and supercronic (better cron for containers), and util-linux for runuser
+RUN apk add --no-cache dcron supercronic tzdata util-linux
+
 # Create app user
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nodejs -u 1001
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001
 
 # Set working directory
 WORKDIR /app
@@ -36,6 +39,14 @@ RUN npm ci --omit=dev --ignore-scripts && npm cache clean --force
 # Copy built application from builder stage
 COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
 
+# Copy cron files
+COPY crontab /app/crontab
+COPY run-scheduled.sh /app/run-scheduled.sh
+
+# Make scripts executable
+RUN chmod +x /app/run-scheduled.sh && \
+    chmod 0644 /app/crontab
+
 # Create necessary directories and set permissions
 RUN mkdir -p /app/logs /app/tmp /app/config /app/output && \
     chown -R nodejs:nodejs /app
@@ -44,15 +55,16 @@ RUN mkdir -p /app/logs /app/tmp /app/config /app/output && \
 RUN mkdir -p /app/firebase-credentials && \
     chown -R nodejs:nodejs /app/firebase-credentials
 
-# Switch to non-root user
-USER nodejs
-
-# Expose port (if needed)
-EXPOSE 3000
+# Set timezone (adjust as needed)
+ENV TZ=Europe/Brussels
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "console.log('Health check passed')" || exit 1
+  CMD pgrep supercronic > /dev/null || exit 1
 
-# Default command
-CMD ["node", "dist/main.js"]
+# Run supercronic as root (it will run commands as nodejs user via runuser in crontab)
+USER root
+
+# Start cron scheduler - supercronic runs as root but can execute as nodejs via runuser
+CMD ["supercronic", "/app/crontab"]
+

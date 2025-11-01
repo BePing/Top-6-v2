@@ -1,5 +1,5 @@
-import {DivisionEntry} from "../../common/tabt-client";
+import {DivisionEntryDtoV1} from "../../common/tabt-client";
 
 export interface DivisionsIngestionModel {
-  divisions: DivisionEntry[];
+  divisions: DivisionEntryDtoV1[];
 }

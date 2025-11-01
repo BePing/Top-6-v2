@@ -1,0 +1,14 @@
+# Cron schedule for Top-6 application
+# Format: minute hour day-of-month month day-of-week command
+# Timezone: Europe/Brussels (adjust TZ env var if needed)
+# Supercronic format - use runuser to run as nodejs user
+
+# Every Sunday at 18:00 (6 PM)
+0 18 * * 0 runuser -u nodejs -- cd /app && node dist/main.js >> /app/logs/scheduled.log 2>&1
+
+# Every Monday at 20:00 (8 PM)
+0 20 * * 1 runuser -u nodejs -- cd /app && node dist/main.js >> /app/logs/scheduled.log 2>&1
+
+# Every Thursday at 08:00 (8 AM)
+0 8 * * 4 runuser -u nodejs -- cd /app && node dist/main.js >> /app/logs/scheduled.log 2>&1
+

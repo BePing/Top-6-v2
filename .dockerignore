@@ -43,8 +43,6 @@ jest.config.js
 
 # CI/CD
 .github/
-.github/
-.github/workflows/
 
 # Other
 *.log

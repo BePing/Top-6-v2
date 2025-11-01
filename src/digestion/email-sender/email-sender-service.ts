@@ -1,4 +1,3 @@
-import {Service} from "typedi";
 import {LoggingService} from "../../common";
 import {ConfigurationService} from "../../configuration/configuration.service";
 import {DigestingServiceContract} from "../digesting-service-contract";
@@ -8,7 +7,6 @@ import path from "path";
 import {ErrorProcessingService} from "../../processing/error-processing-service/error-processing-service";
 import Mailjet from 'node-mailjet';
 
-@Service()
 export class EmailSenderService implements DigestingServiceContract {
   mailClient: Mailjet;
 

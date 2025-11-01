@@ -1,4 +1,3 @@
-import {Service} from "typedi";
 import {ClubsIngestionService} from "./clubs/clubs-ingestion-service";
 import {LoggingService} from "../common";
 import {DivisionsMatchesIngestionService} from "./divisions-matches/divisions-matches-ingestion-service";
@@ -6,7 +5,6 @@ import {DivisionsIngestionService} from "./divisions/divisions-ingestion-service
 import {WeeklyMatchesSummaryIngestionService} from "./weekly-matches-summary/weekly-matches-summary-ingestion-service";
 import {ConfigurationService} from "../configuration/configuration.service";
 
-@Service()
 export class IngestionService {
 
   constructor(

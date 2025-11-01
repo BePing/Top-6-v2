@@ -1,4 +1,3 @@
-import {Service} from "typedi";
 import {LoggingService} from "../common";
 import {DebugDigestionService} from "./debug/debug-digestion-service";
 import {WeeklyMatchesSummaryDigestionService} from "./weekly-matches-summary/weekly-matches-summary-digestion-service";
@@ -11,7 +10,6 @@ import {FirestoreDigestionService} from "./firebase/firestore-digestion.service"
 import {FirebaseMessagingService} from "./firebase/firebase-messaging.service";
 import {AiSummaryService} from "./ai-summary/ai-summary.service";
 
-@Service()
 export class DigestingService {
 
   constructor(

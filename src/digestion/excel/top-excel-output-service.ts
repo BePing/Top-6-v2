@@ -1,4 +1,3 @@
-import {Service} from "typedi";
 import {DigestingServiceContract} from "../digesting-service-contract";
 import {Table, Workbook, Worksheet} from "exceljs";
 import {ConfigurationService} from "../../configuration/configuration.service";
@@ -6,7 +5,6 @@ import {ConsolidateTopService} from "../../processing/top/4-consolidate-tops/con
 import {LoggingService} from "../../common";
 import {TOP_REGIONS} from "../../configuration/configuration.model";
 
-@Service()
 export class TopExcelOutputService implements DigestingServiceContract {
   constructor(
     private readonly configurationService: ConfigurationService,

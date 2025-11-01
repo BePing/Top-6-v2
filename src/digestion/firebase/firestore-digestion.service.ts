@@ -1,4 +1,3 @@
-import {Inject, Service} from "typedi";
 import {DigestingServiceContract} from "../digesting-service-contract";
 import {ConsolidateTopService} from "../../processing/top/4-consolidate-tops/consolidate-top-service";
 import {ConfigurationService} from "../../configuration/configuration.service";
@@ -60,13 +59,12 @@ interface RankingDocument {
   lastUpdated: Date;
 }
 
-@Service()
 export class FirestoreDigestionService implements DigestingServiceContract {
 
   uniqueIndexesInTops: string[] = [];
 
   constructor(
-    @Inject('firebase.admin') private readonly firebaseService: app.App,
+    private readonly firebaseService: app.App,
     private readonly consolidateTopService: ConsolidateTopService,
     private readonly playersPointsProcessingService: PlayersPointsProcessingService,
     private readonly levelAttributionService: LevelAttributionService,

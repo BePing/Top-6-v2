@@ -1,15 +1,13 @@
 services:
   top-6:
-    # Use local build by default - uncomment image line to use GHCR
     build:
       context: .
       dockerfile: Dockerfile
-      target: production
-    # image: ghcr.io/florentcardoen/top-6-v2:latest
-    container_name: top-6-app
+      target: builder
+    container_name: top-6-app-dev
     restart: unless-stopped
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=development
       - GOOGLE_SERVICE_ACCOUNT_JSON_CREDENTIALS=/app/firebase-credentials/firebase_sdk.json
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       # Runtime configuration via environment variables
@@ -20,17 +18,26 @@ services:
       - SEND_VIA_EMAIL=false
       - UPLOAD_TO_FIREBASE=false
       - POST_TO_FACEBOOK=true
-      - WRITE_FULL_DEBUG=false
+      - WRITE_FULL_DEBUG=true
+      # Enable Node.js debugging
+      - NODE_OPTIONS=--inspect=0.0.0.0:9229
     volumes:
+      - ./src:/app/src
       - ./logs:/app/logs
       - ./tmp:/app/tmp
       - ./output:/app/output
       - ./firebase_sdk.json:/app/firebase-credentials/firebase_sdk.json:ro
+      - ./package.json:/app/package.json:ro
+      - ./tsconfig.json:/app/tsconfig.json:ro
+      - ./node_modules:/app/node_modules
     ports:
       - "3000:3000"
+      - "9229:9229"  # Debug port
+    command: npm run start:dev
     healthcheck:
       test: ["CMD", "node", "-e", "console.log('Health check passed')"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
+

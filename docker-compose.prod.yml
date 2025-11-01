@@ -1,26 +1,11 @@
 services:
   top-6:
-    # Use local build by default - uncomment image line to use GHCR
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: production
-    # image: ghcr.io/florentcardoen/top-6-v2:latest
+    image: ghcr.io/florentcardoen/top-6-v2:latest
     container_name: top-6-app
     restart: unless-stopped
     environment:
       - NODE_ENV=production
       - GOOGLE_SERVICE_ACCOUNT_JSON_CREDENTIALS=/app/firebase-credentials/firebase_sdk.json
-      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
-      # Runtime configuration via environment variables
-      - WEEKLY_SUMMARY=false
-      - PLAYERS_IN_TOP=24
-      - EMAILS=
-      - WEEK_NAME=22
-      - SEND_VIA_EMAIL=false
-      - UPLOAD_TO_FIREBASE=false
-      - POST_TO_FACEBOOK=true
-      - WRITE_FULL_DEBUG=false
     volumes:
       - ./logs:/app/logs
       - ./tmp:/app/tmp

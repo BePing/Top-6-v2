@@ -1,4 +1,3 @@
-import {Service} from "typedi";
 import {DigestingServiceContract} from "../digesting-service-contract";
 import {Workbook, Worksheet} from "exceljs";
 import {ConfigurationService} from "../../configuration/configuration.service";
@@ -12,7 +11,6 @@ import {ErrorProcessingService} from "../../processing/error-processing-service/
 import {TopExcelOutputService} from "../excel/top-excel-output-service";
 import {PlayerTotalPoints} from "../../processing/top/3-sum-points/sum-points-model";
 
-@Service()
 export class ExcelDebugOutputService implements DigestingServiceContract {
   constructor(
     private readonly configurationService: ConfigurationService,

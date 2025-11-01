@@ -1,6 +1,3 @@
-import {typeFlag} from "type-flag";
-import {Service} from "typedi";
-
 export interface RuntimeConfiguration {
   weeklySummary: boolean;
   playersInTop: number;
@@ -13,50 +10,22 @@ export interface RuntimeConfiguration {
   googleJSONCredentialsPath: string;
 }
 
-@Service()
 export class RuntimeConfigurationService {
 
   private parsed: RuntimeConfiguration;
 
   init() {
-    this.parsed = typeFlag({
-      weeklySummary: {
-        type: Boolean,
-        default: false,
-      },
-      playersInTop: {
-        type: Number,
-        default: 24,
-      },
-      emails: {
-        type: [String],
-        default: () => [],
-      },
-      weekName: {
-        type: Number,
-        default: 22,
-      },
-      sendViaEmail: {
-        type: Boolean,
-        default: false,
-      },
-      uploadToFirebase: {
-        type: Boolean,
-        default: false,
-      },
-      postToFacebook: {
-        type: Boolean,
-        default: false,
-      },
-      writeFullDebug: {
-        type: Boolean,
-        default: true,
-      },
-      googleJSONCredentialsPath: {
-        type: String,
-        default: process.env.GOOGLE_SERVICE_ACCOUNT_JSON_CREDENTIALS || '',
-      },
-    }).flags;
+    this.parsed = {
+      weeklySummary: process.env.WEEKLY_SUMMARY === 'true',
+      playersInTop: parseInt(process.env.PLAYERS_IN_TOP || '24', 10),
+      emails: process.env.EMAILS ? process.env.EMAILS.split(',').map(email => email.trim()) : [],
+      weekName: parseInt(process.env.WEEK_NAME || '22', 10),
+      sendViaEmail: process.env.SEND_VIA_EMAIL === 'true',
+      uploadToFirebase: process.env.UPLOAD_TO_FIREBASE === 'true',
+      postToFacebook: process.env.POST_TO_FACEBOOK === 'true',
+      writeFullDebug: process.env.WRITE_FULL_DEBUG !== 'false',
+      googleJSONCredentialsPath: process.env.GOOGLE_SERVICE_ACCOUNT_JSON_CREDENTIALS || '',
+    };
   }
 
   override(config: Partial<RuntimeConfiguration>): void {
@@ -83,7 +52,7 @@ export class RuntimeConfigurationService {
     this.parsed.uploadToFirebase = upload;
   }
 
-  get googleCredentialsJSONPath(): string {
+  get googleJSONCredentialsPath(): string {
     return this.parsed.googleJSONCredentialsPath;
   }
 

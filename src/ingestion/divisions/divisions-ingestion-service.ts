@@ -1,24 +1,22 @@
-import {Inject, Service} from "typedi";
-import {DivisionEntry, DivisionsApi} from "../../common/tabt-client";
+import {DivisionEntryDtoV1, DivisionsApi} from "../../common/tabt-client";
 import {IngestionServiceContract} from "../ingestion-service-contract";
 import {DivisionsIngestionModel} from "./divisions-ingestion-model";
 import {LoggingService} from "../../common";
 
-@Service()
 export class DivisionsIngestionService implements IngestionServiceContract<DivisionsIngestionModel> {
 
   private _model: DivisionsIngestionModel;
 
   constructor(
     private readonly logging: LoggingService,
-    @Inject('divisions.api') private readonly divisionsApi: DivisionsApi
+    private readonly divisionsApi: DivisionsApi
   ) {
   }
 
   async ingest() {
     this.logging.info('Fetching divisions info');
-    const {data: divisions} = await this.divisionsApi.findAllDivisions({
-      showDivisionName: "short",
+    const {data: divisions} = await this.divisionsApi.findAllDivisionsV1({
+      showDivisionName: 'short',
     });
     this._model = {
       divisions
@@ -30,7 +28,7 @@ export class DivisionsIngestionService implements IngestionServiceContract<Divis
     return this._model;
   }
 
-  getDivision(divId: number): DivisionEntry {
+  getDivision(divId: number): DivisionEntryDtoV1 | undefined {
     return this.model.divisions.find((d) => d.DivisionId === divId);
   }
 }

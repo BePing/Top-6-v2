@@ -1,7 +1,5 @@
-import {Service} from "typedi";
 import {IndividualMatchResult, Player} from "../../../common";
 
-@Service()
 export class PointsHelper {
   static countForfeitForPlayer(
     playerUniqueIndex: number,

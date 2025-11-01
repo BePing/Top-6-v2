@@ -1,9 +1,7 @@
-import {Service} from "typedi";
 import {LoggingService} from "../../common";
 import {ErrorProcessingModel} from "./error-processing-model";
 import {ProcessingServiceContract} from "../processing-service-contract";
 
-@Service()
 export class ErrorProcessingService implements ProcessingServiceContract<ErrorProcessingModel> {
 
   _model: ErrorProcessingModel;
@@ -11,6 +9,11 @@ export class ErrorProcessingService implements ProcessingServiceContract<ErrorPr
   constructor(
     private readonly loggingService: LoggingService
   ) {
+    // Initialize model immediately to prevent undefined access
+    this._model = {
+      errors: [],
+      warnings: []
+    };
   }
 
   async process(): Promise<void> {

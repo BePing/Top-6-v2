@@ -1,5 +1,5 @@
 import * as path from "path";
-import {Container, Inject, Service} from "typedi";
+
 import {FileSystemHelper, LoggingService} from "../common";
 import {
   Configuration,
@@ -16,7 +16,6 @@ import {RuntimeConfigurationService} from "./runtime-configuration.service";
 import admin, {ServiceAccount} from "firebase-admin";
 import {GoogleCredentialsLoaderService} from './google-credentials-loader.service';
 
-@Service()
 export class ConfigurationService {
 
   private _configuration: Configuration;
@@ -28,16 +27,15 @@ export class ConfigurationService {
     private readonly _fileSystemHelper: FileSystemHelper,
     private readonly commandConfiguration: RuntimeConfigurationService,
     private readonly googleCredentialsLoader: GoogleCredentialsLoaderService,
-    @Inject('firebase.admin') private _firebaseAdmin: admin.app.App) {
+    private _firebaseAdmin: admin.app.App) {
   }
 
   async init(): Promise<void> {
     this._loggingService.info(this._loggingService.getLayerInfo('CONFIGURATION'));
     await this.commandConfiguration.init();
-    await this.googleCredentialsLoader.init();
-
-    // Reload firebase admin since it has been updated by the googleCredentialsLoader
-    this._firebaseAdmin = await Container.get('firebase.admin');
+    
+    // Skip Google credentials loader since Firebase is now initialized in main.ts
+    // await this.googleCredentialsLoader.init();
 
     await this.loadConfigFromFirestore();
 
@@ -191,7 +189,6 @@ export class ConfigurationService {
   private async loadConfigFromFirestore() {
     this._loggingService.debug('LOADING CONFIGURATION FROM FIRESTORE');
 
-    this._loggingService.trace('Configuration loaded');
     const configurationCollection = this._firebaseAdmin.firestore().collection('configuration');
     const facebook = await configurationCollection.doc('facebook').get();
     const beping_api = await configurationCollection.doc('beping_api').get();
@@ -201,9 +198,13 @@ export class ConfigurationService {
     const excluded_players = await configurationCollection.doc('excluded_players').get();
     const mailing = await configurationCollection.doc('mailing').get();
 
+    // Debug the beping_api data
+    this._loggingService.debug(`Beping API data: ${JSON.stringify(beping_api.data())}`);
+    this._loggingService.debug(`Beping API URL: ${beping_api.data()?.url}`);
+
     this._configuration = {
       facebook: facebook.data() as FacebookPage,
-      beping_url: beping_api.data().url,
+      beping_url: beping_api.data()?.url || 'https://api-v2.beping.be',
       top6: {
         levels_definition: levels_definition.data() as LevelsDefinition,
         regions_definition: regions_definition.data() as RegionsDefinition,
@@ -212,8 +213,9 @@ export class ConfigurationService {
       },
       email: mailing.data() as Mailing,
       output: 'output',
-
     }
+
+    this._loggingService.trace('Configuration loaded');
   }
 
   isPlayerExcluded(uniqueIndex: number) {
@@ -221,6 +223,11 @@ export class ConfigurationService {
   }
 
   get bepingUrl(): string {
-    return this._configuration.beping_url;
+    const url = this._configuration.beping_url;
+    if (!url) {
+      console.warn('⚠️  No beping_url found in Firestore configuration, using default: https://api.beping.be');
+      return 'https://api.beping.be';
+    }
+    return url;
   }
 }

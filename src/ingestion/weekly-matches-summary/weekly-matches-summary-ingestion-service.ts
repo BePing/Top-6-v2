@@ -1,20 +1,18 @@
 import {IngestionServiceContract} from "../ingestion-service-contract";
 import {WeeklyMatchesSummaryIngestionModel} from "./weekly-matches-summary-ingestion-model";
-import {Inject, Service} from "typedi";
-import {LoggingService, MatchesApi, TeamMatchesEntry} from "../../common";
+import {LoggingService, MatchesApi, TeamMatchesEntryDTO} from "../../common";
 import {ConfigurationService} from "../../configuration/configuration.service";
 import {format, sub} from "date-fns";
 import {uniqBy} from "lodash";
 
-@Service()
 export class WeeklyMatchesSummaryIngestionService implements IngestionServiceContract<WeeklyMatchesSummaryIngestionModel> {
   private _model: WeeklyMatchesSummaryIngestionModel;
 
   constructor(
     private readonly config: ConfigurationService,
     private readonly logging: LoggingService,
-    @Inject('matches.api') private readonly matchesApi: MatchesApi,
-    @Inject('randomip') private readonly randomIp: () => string
+    private readonly matchesApi: MatchesApi,
+    private readonly randomIp: () => string
   ) {
   }
 
@@ -28,34 +26,49 @@ export class WeeklyMatchesSummaryIngestionService implements IngestionServiceCon
 
     const regions = this.config.allRegions;
     let total = 0;
+    let processedRegions = 0;
+
     for (const region of regions) {
-      this.logging.info(`Fetching for ${region}`);
+      processedRegions++;
       const clubs = this.config.getAllClubsForRegion(region);
+      this.logging.info(`📍 Processing region ${processedRegions}/${regions.length}: ${region} (${clubs.length} clubs)`);
+
+      let processedClubs = 0;
       for (const club of clubs) {
-        const {data: matches} = await this.matchesApi.findAllMatches({
-          club,
-          withDetails: true,
-          yearDateFrom: format(this._model.from, 'yyyy-MM-dd'),
-          yearDateTo: format(this._model.to, 'yyyy-MM-dd'),
-          showDivisionName: 'yes'
-        }, {
-          headers: {
-            'x-forwarded-for': this.randomIp()
+        processedClubs++;
+
+        try {
+          const {data: matches} = await this.matchesApi.findAllMatches({
+            club,
+            withDetails: true,
+            yearDateFrom: format(this._model.from, 'yyyy-MM-dd'),
+            yearDateTo: format(this._model.to, 'yyyy-MM-dd'),
+            showDivisionName: 'yes'
+          }, {
+            headers: {
+              'x-forwarded-for': this.randomIp()
+            }
+          });
+
+          if(matches.length){
+            const nonByeMatches = matches.filter((match: TeamMatchesEntryDTO) => !(match.homeTeam.includes('Bye') || match.awayTeam.includes('Bye')));
+            this._model.matches[region] = uniqBy([
+              ...(this._model.matches[region] ?? []),
+              ...nonByeMatches
+            ], 'matchId');
+            total += nonByeMatches.length;
           }
-        });
-        if(matches.length){
-          const nonByeMatches = matches.filter((match: TeamMatchesEntry) => !(match.HomeTeam.includes('Bye') || match.AwayTeam.includes('Bye')));
-          this._model.matches[region] = uniqBy([
-            ...(this._model.matches[region] ?? []),
-            ...nonByeMatches
-          ], 'MatchId');
-          total += nonByeMatches.length;
+
+          if (processedClubs % 10 === 0 || processedClubs === clubs.length) {
+            this.logging.info(`  Progress: ${processedClubs}/${clubs.length} clubs processed for ${region}`);
+          }
+        } catch (error) {
+          this.logging.warn(`⚠️ Failed to fetch matches for club ${club}: ${error.message}`);
         }
-        this.logging.trace(`${matches.length > 0 ? '✅ ' : '⛔️'} ${club} - ${matches.length} matches`);
       }
+      this.logging.info(`✅ Completed region ${region}: ${total} total matches so far`);
     }
-    this.logging.trace(`---`);
-    this.logging.trace(`Ingested ${total} matches`);
+    this.logging.info(`🎉 Weekly summary ingestion completed: ${total} matches from ${regions.length} regions`);
   }
 
   get model(): WeeklyMatchesSummaryIngestionModel {

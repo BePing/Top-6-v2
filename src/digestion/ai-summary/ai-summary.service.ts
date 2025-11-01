@@ -1,4 +1,3 @@
-import { Service } from "typedi";
 import OpenAI from "openai";
 import { LoggingService } from "../../common";
 import { PlayerPosition } from "../../processing/top/4-consolidate-tops/consolidate-top-model";
@@ -38,7 +37,6 @@ export interface AISummary {
   generatedAt: Date;
 }
 
-@Service()
 export class AiSummaryService {
   private openai: OpenAI | null = null;
 
@@ -80,7 +78,7 @@ export class AiSummaryService {
       const prompt = this.buildAnalysisPrompt(analytics);
       
       const response = await this.openai.chat.completions.create({
-        model: "gpt-5-nano",
+        model: "gpt-4o-mini",
         messages: [
           {
             role: "system",
@@ -122,6 +120,10 @@ export class AiSummaryService {
 
     } catch (error) {
       this.loggingService.error(`Échec de génération du résumé IA pour ${analytics.region} :`, error);
+      if (error instanceof Error) {
+        this.loggingService.error(`Message d'erreur : ${error.message}`);
+        this.loggingService.error(`Stack trace : ${error.stack}`);
+      }
       return null;
     }
   }
@@ -258,7 +260,7 @@ RÉPARTITION DES JOUEURS PAR NIVEAU :`;
       const prompt = this.buildFacebookPostPrompt(analytics);
       
       const response = await this.openai.chat.completions.create({
-        model: "gpt-5-nano",
+        model: "gpt-4o-mini",
         messages: [
           {
             role: "system",
@@ -283,6 +285,10 @@ RÉPARTITION DES JOUEURS PAR NIVEAU :`;
 
     } catch (error) {
       this.loggingService.error(`Échec de génération du post Facebook pour ${analytics.region} :`, error);
+      if (error instanceof Error) {
+        this.loggingService.error(`Message d'erreur : ${error.message}`);
+        this.loggingService.error(`Stack trace : ${error.stack}`);
+      }
       return null;
     }
   }
@@ -326,14 +332,14 @@ Ta mission est de créer des posts Facebook captivants qui :
 
 OBLIGATOIRE - Structure du post :
 1. ANALYSE DE LA SEMAINE (2-3 phrases) : Aperçu général des développements et tendances
-2. CLASSEMENT PAR NIVEAU : Inclus systématiquement les TOP 6 joueurs de chaque niveau
+2. CLASSEMENT PAR DIVISION (appelé niveau dans le code) : Inclus systématiquement les TOP 6 joueurs de chaque niveau
 3. Points forts et performances remarquables
 4. Hashtags pertinents
 
 CLASSEMENT PAR NIVEAU - OBLIGATOIRE À INCLURE :
 - Inclus systématiquement les TOP 6 joueurs de chaque niveau
-- Présente les résultats par catégorie (Provincial 1, Provincial 2, etc.)
-- Montre les points et performances de chaque joueur
+- Présente les résultats par catégorie (Provincial 1, Provincial 2, etc.). 
+- NAT_WB = National WB
 - Organise clairement l'information par niveau
 
 COHÉRENCE DU CONTENU - OBLIGATOIRE :
@@ -346,10 +352,10 @@ COHÉRENCE DU CONTENU - OBLIGATOIRE :
 
 FORMAT DU POST :
 - Commence par un titre accrocheur avec emoji
+- Inclus des points clés avec des puces
 - Inclus OBLIGATOIREMENT l'analyse de la semaine au début
 - Inclus OBLIGATOIREMENT le classement complet par niveau (top 6)
 - Utilise des paragraphes courts et lisibles
-- Inclus des points clés avec des puces
 - Termine par des hashtags pertinents
 - Longueur optimale : 400-600 mots
 

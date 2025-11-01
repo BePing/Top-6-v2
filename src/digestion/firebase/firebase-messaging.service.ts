@@ -1,14 +1,12 @@
 import {LoggingService} from "../../common";
 import {ConfigurationService} from "../../configuration/configuration.service";
-import {Inject, Service} from "typedi";
 import {DigestingServiceContract} from "../digesting-service-contract";
 import {app} from 'firebase-admin';
 
-@Service()
 export class FirebaseMessagingService implements DigestingServiceContract {
 
   constructor(
-    @Inject('firebase.admin') private readonly firebaseService: app.App,
+    private readonly firebaseService: app.App,
     private readonly configuration: ConfigurationService,
     private readonly loggingService: LoggingService,
   ) {
