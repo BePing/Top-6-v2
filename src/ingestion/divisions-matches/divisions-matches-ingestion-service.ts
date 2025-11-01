@@ -28,7 +28,7 @@ export class DivisionsMatchesIngestionService implements IngestionServiceContrac
       try {
         const requestParams = {
           divisionId,
-          xTabtSeason: this.config.currentSeason,
+          xTabtSeason: this.config.currentSeason.toString(),
           withDetails: true,
         };
         this.logging.trace(`API Request for division ${divisionId}: ${JSON.stringify(requestParams)}`);
