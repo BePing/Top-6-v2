@@ -3,7 +3,7 @@ import {PlayersPointsProcessingService} from "../1-players-points/players-points
 import {ProcessingServiceContract} from "../../processing-service-contract";
 import {PlayerPoint, PlayerPoints} from "../1-players-points/players-points-processing-model";
 import {groupBy} from "lodash";
-import {TOP_LEVEL, topLevelOrder} from "../../../configuration/configuration.model";
+import {TOP_LEVEL} from "../../../configuration/configuration.model";
 import {PlayersLevelAttribution} from "./level-attribution-model";
 import {ConfigurationService} from '../../../configuration/configuration.service';
 
@@ -33,10 +33,20 @@ export class LevelAttributionService implements ProcessingServiceContract<Player
         const pointsPerLevels: [string, PlayerPoint[]][] = Object.entries(groupBy(pointsForWeekname, 'level'));
         const mainLevel =
           pointsPerLevels.sort((
-              [levelA, pointsA]: [TOP_LEVEL, PlayerPoint[]],
-              [levelB, pointsB]: [TOP_LEVEL, PlayerPoint[]],
-            ) =>
-              ((pointsB.length - pointsA.length) * 10) + (topLevelOrder.indexOf(levelB) - topLevelOrder.indexOf(levelA)),
+              [_levelA, pointsA]: [TOP_LEVEL, PlayerPoint[]],
+              [_levelB, pointsB]: [TOP_LEVEL, PlayerPoint[]],
+            ) => {
+              // First, sort by count (descending) - level with most matches wins
+              const countDiff = pointsB.length - pointsA.length;
+              if (countDiff !== 0) {
+                return countDiff;
+              }
+              // If counts are equal, find the first weekName for each level
+              const firstWeekA = Math.min(...pointsA.map(p => p.weekName));
+              const firstWeekB = Math.min(...pointsB.map(p => p.weekName));
+              // Return the level that was played first (earliest weekName)
+              return firstWeekA - firstWeekB;
+            },
           );
         this._model[weekName][uniqueIndex] = (mainLevel?.[0]?.[0] as TOP_LEVEL) ?? TOP_LEVEL.NA;
       }

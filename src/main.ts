@@ -15,6 +15,7 @@ dotenv.config();
 console.log('🔧 Environment variables loaded:');
 console.log(`   - GOOGLE_SERVICE_ACCOUNT_JSON_CREDENTIALS: ${process.env.GOOGLE_SERVICE_ACCOUNT_JSON_CREDENTIALS ? 'SET' : 'NOT SET'}`);
 console.log(`   - OPENAI_API_KEY: ${process.env.OPENAI_API_KEY ? 'SET' : 'NOT SET'}`);
+console.log(`   - MAKE_FACEBOOK_POST_URL: ${process.env.MAKE_FACEBOOK_POST_URL ? 'SET' : 'NOT SET'}`);
 console.log(`   - NODE_ENV: ${process.env.NODE_ENV || 'NOT SET'}`);
 
 function configureGlobalAxios() {

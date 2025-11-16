@@ -37,12 +37,55 @@ export interface AISummary {
   generatedAt: Date;
 }
 
+interface RawAIResponse {
+  summary?: string;
+  keyHighlights?: string[];
+  topPerformers?: Array<{
+    name?: string;
+    club?: string;
+    level?: string;
+    achievement?: string;
+  }>;
+  trends?: {
+    risingPlayers?: string[];
+    dominantClubs?: string[];
+    competitiveLevel?: string;
+    weeklyInsight?: string;
+  };
+}
+
+interface APIUsage {
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+}
+
+interface AIServiceConfig {
+  model: string;
+  temperature: number;
+  maxCompletionTokens: number;
+  requestTimeout: number;
+  retryAttempts: number;
+  rateLimitDelay: number;
+}
+
 export class AiSummaryService {
   private openai: OpenAI | null = null;
+  private tokenUsage: APIUsage[] = [];
+  private readonly config: AIServiceConfig;
 
   constructor(
     private readonly loggingService: LoggingService,
   ) {
+    this.config = {
+      model: process.env.AI_MODEL || "gpt-4o-mini",
+      temperature: parseFloat(process.env.AI_TEMPERATURE || '0.7'),
+      maxCompletionTokens: parseInt(process.env.AI_MAX_TOKENS || '2500', 10),
+      // Increased default timeout to 90 seconds for large completions (2500 tokens can take time)
+      requestTimeout: parseInt(process.env.AI_REQUEST_TIMEOUT || '90000', 10),
+      retryAttempts: parseInt(process.env.AI_RETRY_ATTEMPTS || '3', 10),
+      rateLimitDelay: parseInt(process.env.AI_RATE_LIMIT_DELAY || '1000', 10),
+    };
     this.initializeOpenAI();
   }
 
@@ -57,13 +100,165 @@ export class AiSummaryService {
     try {
       this.openai = new OpenAI({
         apiKey: apiKey,
+        timeout: this.config.requestTimeout,
+        maxRetries: 0, // We handle retries ourselves with exponential backoff
       });
-      this.loggingService.info('✅ Client OpenAI initialisé avec succès');
-      this.loggingService.trace(`🔑 Utilisation de la clé API OpenAI : ${apiKey.substring(0, 7)}...${apiKey.substring(apiKey.length - 4)}`);
+      this.loggingService.info(`✅ Client OpenAI initialisé avec succès (timeout: ${this.config.requestTimeout}ms)`);
     } catch (error) {
       this.loggingService.error('❌ Échec de l\'initialisation du client OpenAI :', error);
       this.loggingService.error('💡 Veuillez vérifier votre OPENAI_API_KEY dans le fichier .env');
     }
+  }
+
+  private validateAnalytics(analytics: RegionAnalytics): void {
+    if (!analytics.region || typeof analytics.region !== 'string') {
+      throw new Error('Invalid analytics: region is required and must be a string');
+    }
+    if (!analytics.weekName || typeof analytics.weekName !== 'number' || analytics.weekName < 1) {
+      throw new Error('Invalid analytics: weekName must be a positive number');
+    }
+    if (typeof analytics.totalPlayers !== 'number' || analytics.totalPlayers < 0) {
+      throw new Error('Invalid analytics: totalPlayers must be a non-negative number');
+    }
+    if (!Array.isArray(analytics.clubs)) {
+      throw new Error('Invalid analytics: clubs must be an array');
+    }
+    if (!analytics.playersByLevel || typeof analytics.playersByLevel !== 'object') {
+      throw new Error('Invalid analytics: playersByLevel must be an object');
+    }
+    if (!analytics.topPlayersByLevel || typeof analytics.topPlayersByLevel !== 'object') {
+      throw new Error('Invalid analytics: topPlayersByLevel must be an object');
+    }
+  }
+
+  private sanitizeForPrompt(text: string): string {
+    // Remove or escape special characters that could break prompts
+    return text
+      .replace(/[{}]/g, '') // Remove JSON-like characters
+      .replace(/\n{3,}/g, '\n\n') // Limit consecutive newlines
+      .trim();
+  }
+
+  private validateAIResponse(response: RawAIResponse): Omit<AISummary, 'region' | 'weekName' | 'generatedAt'> {
+    if (!response.summary || typeof response.summary !== 'string') {
+      throw new Error('Invalid AI response: missing or invalid summary field');
+    }
+
+    return {
+      summary: response.summary,
+      keyHighlights: Array.isArray(response.keyHighlights) 
+        ? response.keyHighlights.filter((h): h is string => typeof h === 'string')
+        : [],
+      topPerformers: Array.isArray(response.topPerformers)
+        ? response.topPerformers
+            .filter((p): p is NonNullable<typeof p> => p !== null && typeof p === 'object')
+            .map(p => ({
+              name: typeof p.name === 'string' ? p.name : 'Unknown',
+              club: typeof p.club === 'string' ? p.club : 'Unknown',
+              level: typeof p.level === 'string' ? p.level : 'Unknown',
+              achievement: typeof p.achievement === 'string' ? p.achievement : ''
+            }))
+        : [],
+      trends: {
+        risingPlayers: Array.isArray(response.trends?.risingPlayers)
+          ? response.trends.risingPlayers.filter((p): p is string => typeof p === 'string')
+          : [],
+        dominantClubs: Array.isArray(response.trends?.dominantClubs)
+          ? response.trends.dominantClubs.filter((c): c is string => typeof c === 'string')
+          : [],
+        competitiveLevel: typeof response.trends?.competitiveLevel === 'string'
+          ? response.trends.competitiveLevel
+          : 'Modéré',
+        weeklyInsight: typeof response.trends?.weeklyInsight === 'string'
+          ? response.trends.weeklyInsight
+          : 'La compétition reste active'
+      }
+    };
+  }
+
+  private async retryWithBackoff<T>(
+    fn: () => Promise<T>,
+    context: string,
+    maxRetries?: number
+  ): Promise<T> {
+    const retries = maxRetries ?? this.config.retryAttempts;
+    let lastError: Error | null = null;
+
+    for (let attempt = 0; attempt < retries; attempt++) {
+      try {
+        return await fn();
+      } catch (error: any) {
+        lastError = error instanceof Error ? error : new Error(String(error));
+        
+        // Check if error is retryable (rate limit or server error)
+        const isRetryable = error?.status === 429 || (error?.status >= 500 && error?.status < 600);
+        
+        if (!isRetryable || attempt === retries - 1) {
+          throw lastError;
+        }
+
+        const delay = this.config.rateLimitDelay * Math.pow(2, attempt);
+        this.loggingService.warn(`${context} - Tentative ${attempt + 1}/${retries} échouée. Nouvelle tentative dans ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+
+    throw lastError || new Error('Max retries exceeded');
+  }
+
+  private async makeAPIRequestWithTimeout<T>(
+    requestFn: () => Promise<T>,
+    timeout: number = this.config.requestTimeout
+  ): Promise<T> {
+    let timeoutId: NodeJS.Timeout;
+    const timeoutPromise = new Promise<T>((_, reject) => {
+      timeoutId = setTimeout(() => {
+        reject(new Error(`Request timeout after ${timeout}ms`));
+      }, timeout);
+    });
+
+    try {
+      const result = await Promise.race([
+        requestFn(),
+        timeoutPromise
+      ]);
+      // Clear timeout if request completed successfully
+      clearTimeout(timeoutId!);
+      return result;
+    } catch (error) {
+      // Clear timeout on error as well
+      clearTimeout(timeoutId!);
+      throw error;
+    }
+  }
+
+  private trackTokenUsage(response: any): void {
+    if (response?.usage) {
+      const usage: APIUsage = {
+        promptTokens: response.usage.prompt_tokens || 0,
+        completionTokens: response.usage.completion_tokens || 0,
+        totalTokens: response.usage.total_tokens || 0,
+      };
+      this.tokenUsage.push(usage);
+      this.loggingService.trace(
+        `Token usage: ${usage.totalTokens} (prompt: ${usage.promptTokens}, completion: ${usage.completionTokens})`
+      );
+    }
+  }
+
+  getTokenUsage(): APIUsage[] {
+    return [...this.tokenUsage];
+  }
+
+  getTotalTokenUsage(): APIUsage {
+    return this.tokenUsage.reduce(
+      (acc, usage) => ({
+        promptTokens: acc.promptTokens + usage.promptTokens,
+        completionTokens: acc.completionTokens + usage.completionTokens,
+        totalTokens: acc.totalTokens + usage.totalTokens,
+      }),
+      { promptTokens: 0, completionTokens: 0, totalTokens: 0 }
+    );
   }
 
   async generateRegionSummary(analytics: RegionAnalytics): Promise<AISummary | null> {
@@ -73,45 +268,60 @@ export class AiSummaryService {
     }
 
     try {
+      // Validate input
+      this.validateAnalytics(analytics);
+
       this.loggingService.info(`Génération du résumé IA pour la région ${analytics.region}, semaine ${analytics.weekName}`);
+      const startTime = Date.now();
 
       const prompt = this.buildAnalysisPrompt(analytics);
+      this.loggingService.trace(`Prompt length: ${prompt.length} characters`);
       
-      const response = await this.openai.chat.completions.create({
-        model: "gpt-4o-mini",
-        messages: [
-          {
-            role: "system",
-            content: this.getSystemPrompt()
-          },
-          {
-            role: "user", 
-            content: prompt
-          }
-        ],
-        max_completion_tokens: 2500,
-        response_format: { type: "json_object" }
-      });
+      const response = await this.retryWithBackoff(
+        () => this.makeAPIRequestWithTimeout(() =>
+          this.openai!.chat.completions.create({
+            model: this.config.model,
+            temperature: this.config.temperature,
+            messages: [
+              {
+                role: "system",
+                content: this.getSystemPrompt()
+              },
+              {
+                role: "user", 
+                content: prompt
+              }
+            ],
+            max_completion_tokens: this.config.maxCompletionTokens,
+            response_format: { type: "json_object" }
+          })
+        ),
+        `Résumé IA pour ${analytics.region}`
+      );
+
+      // Track token usage
+      this.trackTokenUsage(response);
+      const duration = Date.now() - startTime;
+      this.loggingService.trace(`API request completed in ${duration}ms`);
 
       const content = response.choices[0]?.message?.content;
       if (!content) {
         throw new Error('Aucun contenu reçu d\'OpenAI');
       }
 
-      const aiAnalysis = JSON.parse(content);
+      let aiAnalysis: RawAIResponse;
+      try {
+        aiAnalysis = JSON.parse(content);
+      } catch (parseError) {
+        throw new Error(`Invalid JSON response from AI: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`);
+      }
+
+      const validatedSummary = this.validateAIResponse(aiAnalysis);
       
       const summary: AISummary = {
+        ...validatedSummary,
         region: analytics.region,
         weekName: analytics.weekName,
-        summary: aiAnalysis.summary,
-        keyHighlights: aiAnalysis.keyHighlights || [],
-        topPerformers: aiAnalysis.topPerformers || [],
-        trends: {
-          risingPlayers: aiAnalysis.trends?.risingPlayers || [],
-          dominantClubs: aiAnalysis.trends?.dominantClubs || [],
-          competitiveLevel: aiAnalysis.trends?.competitiveLevel || 'Modéré',
-          weeklyInsight: aiAnalysis.trends?.weeklyInsight || 'La compétition reste active'
-        },
         generatedAt: new Date()
       };
 
@@ -122,7 +332,9 @@ export class AiSummaryService {
       this.loggingService.error(`Échec de génération du résumé IA pour ${analytics.region} :`, error);
       if (error instanceof Error) {
         this.loggingService.error(`Message d'erreur : ${error.message}`);
-        this.loggingService.error(`Stack trace : ${error.stack}`);
+        if (process.env.NODE_ENV === 'development') {
+          this.loggingService.error(`Stack trace : ${error.stack}`);
+        }
       }
       return null;
     }
@@ -163,12 +375,15 @@ Utilise un langage engageant mais professionnel. Concentre-toi sur les aspects c
   private buildAnalysisPrompt(analytics: RegionAnalytics): string {
     const { region, weekName, totalPlayers, playersByLevel, topPlayersByLevel, clubs } = analytics;
     
-    let prompt = `Analyse les données du championnat de tennis de table pour la région ${region}, semaine ${weekName} :
+    // Sanitize inputs
+    const sanitizedRegion = this.sanitizeForPrompt(region);
+    
+    let prompt = `Analyse les données du championnat de tennis de table pour la région ${sanitizedRegion}, semaine ${weekName} :
 
 APERÇU DE LA RÉGION :
 - Total de joueurs actifs : ${totalPlayers}
 - Nombre de clubs : ${clubs.length}
-- Clubs participants : ${clubs.join(', ')}
+- Clubs participants : ${clubs.map(c => this.sanitizeForPrompt(c)).join(', ')}
 
 RÉPARTITION DES JOUEURS PAR NIVEAU :`;
 
@@ -236,14 +451,15 @@ RÉPARTITION DES JOUEURS PAR NIVEAU :`;
       const summary = await this.generateRegionSummary(analytics);
       summaries.push(summary);
       
-      // Petit délai pour respecter les limites de taux
+      // Délai configurable pour respecter les limites de taux
       if (summaries.length < analyticsArray.length) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, this.config.rateLimitDelay));
       }
     }
 
     const successCount = summaries.filter(s => s !== null).length;
-    this.loggingService.info(`✅ Généré ${successCount}/${analyticsArray.length} résumés IA`);
+    const totalUsage = this.getTotalTokenUsage();
+    this.loggingService.info(`✅ Généré ${successCount}/${analyticsArray.length} résumés IA (Total tokens: ${totalUsage.totalTokens})`);
     
     return summaries;
   }
@@ -255,25 +471,41 @@ RÉPARTITION DES JOUEURS PAR NIVEAU :`;
     }
 
     try {
+      // Validate input
+      this.validateAnalytics(analytics);
+
       this.loggingService.info(`Génération du post Facebook pour la région ${analytics.region}, semaine ${analytics.weekName}`);
+      const startTime = Date.now();
 
       const prompt = this.buildFacebookPostPrompt(analytics);
+      this.loggingService.trace(`Prompt length: ${prompt.length} characters`);
       
-      const response = await this.openai.chat.completions.create({
-        model: "gpt-4o-mini",
-        messages: [
-          {
-            role: "system",
-            content: this.getFacebookPostSystemPrompt()
-          },
-          {
-            role: "user", 
-            content: prompt
-          }
-        ],
-        max_completion_tokens: 2500,
-        response_format: { type: "text" }
-      });
+      const response = await this.retryWithBackoff(
+        () => this.makeAPIRequestWithTimeout(() =>
+          this.openai!.chat.completions.create({
+            model: this.config.model,
+            temperature: this.config.temperature,
+            messages: [
+              {
+                role: "system",
+                content: this.getFacebookPostSystemPrompt()
+              },
+              {
+                role: "user", 
+                content: prompt
+              }
+            ],
+            max_completion_tokens: this.config.maxCompletionTokens,
+            response_format: { type: "text" }
+          })
+        ),
+        `Post Facebook pour ${analytics.region}`
+      );
+
+      // Track token usage
+      this.trackTokenUsage(response);
+      const duration = Date.now() - startTime;
+      this.loggingService.trace(`API request completed in ${duration}ms`);
 
       const content = response.choices[0]?.message?.content;
       if (!content) {
@@ -287,7 +519,9 @@ RÉPARTITION DES JOUEURS PAR NIVEAU :`;
       this.loggingService.error(`Échec de génération du post Facebook pour ${analytics.region} :`, error);
       if (error instanceof Error) {
         this.loggingService.error(`Message d'erreur : ${error.message}`);
-        this.loggingService.error(`Stack trace : ${error.stack}`);
+        if (process.env.NODE_ENV === 'development') {
+          this.loggingService.error(`Stack trace : ${error.stack}`);
+        }
       }
       return null;
     }
@@ -308,14 +542,15 @@ RÉPARTITION DES JOUEURS PAR NIVEAU :`;
       const post = await this.generateFacebookPost(analytics);
       posts.push(post);
       
-      // Petit délai pour respecter les limites de taux
+      // Délai configurable pour respecter les limites de taux
       if (posts.length < analyticsArray.length) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, this.config.rateLimitDelay));
       }
     }
 
     const successCount = posts.filter(p => p !== null).length;
-    this.loggingService.info(`✅ Généré ${successCount}/${analyticsArray.length} posts Facebook`);
+    const totalUsage = this.getTotalTokenUsage();
+    this.loggingService.info(`✅ Généré ${successCount}/${analyticsArray.length} posts Facebook (Total tokens: ${totalUsage.totalTokens})`);
     
     return posts;
   }
@@ -371,12 +606,15 @@ TON ET STYLE :
   private buildFacebookPostPrompt(analytics: RegionAnalytics): string {
     const { region, weekName, totalPlayers, playersByLevel, topPlayersByLevel, clubs } = analytics;
     
-    let prompt = `Crée un post Facebook engageant pour le championnat de tennis de table de la région ${region}, semaine ${weekName}.
+    // Sanitize inputs
+    const sanitizedRegion = this.sanitizeForPrompt(region);
+    
+    let prompt = `Crée un post Facebook engageant pour le championnat de tennis de table de la région ${sanitizedRegion}, semaine ${weekName}.
 
 CONTEXTE DE LA RÉGION :
 - Total de joueurs actifs : ${totalPlayers}
 - Nombre de clubs participants : ${clubs.length}
-- Clubs : ${clubs.join(', ')}
+- Clubs : ${clubs.map(c => this.sanitizeForPrompt(c)).join(', ')}
 
 RÉPARTITION DES JOUEURS PAR NIVEAU :`;
 

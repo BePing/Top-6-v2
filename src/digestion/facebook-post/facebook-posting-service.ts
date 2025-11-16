@@ -19,7 +19,14 @@ export class FacebookPostingService implements DigestingServiceContract {
 
   async digest(): Promise<void> {
     this.loggingService.info('Posting on Facebook for all regions...');
-    
+    const facebookPostUrl = process.env.FACEBOOK_POST_URL;
+
+    if (!facebookPostUrl) {
+      this.loggingService.error('Facebook post URL is not set. Please set the FACEBOOK_POST_URL environment variable.');
+      throw new Error('Facebook post URL is not set. Please set the FACEBOOK_POST_URL environment variable.');
+    }
+
+
     if (!this.aiSummaryService.isEnabled()) {
       this.loggingService.warn('AI summary service is not enabled. Falling back to basic text generation.');
       await this.postBasicText();
@@ -93,8 +100,12 @@ export class FacebookPostingService implements DigestingServiceContract {
     console.log(facebookPost);
     console.log('='.repeat(50));
     
+    if (region != 'VERVIERS') {
+      return;
+    }
+
     try {
-      /*
+      
       const payload = {
         content: facebookPost,
         region: region,
@@ -102,12 +113,12 @@ export class FacebookPostingService implements DigestingServiceContract {
       };
 
       const response = await this.axios.post(
-        'https://hook.eu2.make.com/n8urup72oejw7uljo0iuo919etdfca9e', 
+        '', 
         payload
       );
       
       this.loggingService.trace(`Response from make for ${region}:`, response.data);
-      */
+      
       
       this.loggingService.info(`✅ Posted AI-generated Facebook content for ${region}`);
       
@@ -117,6 +128,12 @@ export class FacebookPostingService implements DigestingServiceContract {
   }
 
   private async postBasicText(): Promise<void> {
+    const facebookPostUrl = process.env.FACEBOOK_POST_URL;
+    if (!facebookPostUrl) {
+      this.loggingService.error('Facebook post URL is not set. Please set the FACEBOOK_POST_URL environment variable.');
+      throw new Error('Facebook post URL is not set. Please set the FACEBOOK_POST_URL environment variable.');
+    }
+
     this.loggingService.info('Posting basic text content...');
     
     // Fallback to original basic text generation for VERVIERS only
@@ -136,7 +153,7 @@ export class FacebookPostingService implements DigestingServiceContract {
       };
 
       const response = await this.axios.post(
-        'https://hook.eu2.make.com/n8urup72oejw7uljo0iuo919etdfca9e', 
+        facebookPostUrl, 
         payload
       );
       
