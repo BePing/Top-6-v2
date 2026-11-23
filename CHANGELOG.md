@@ -52,6 +52,20 @@
 * fix unit tests ([2382084](https://github.com/BePing/Top-6-v2/commit/2382084f9aa065194d67d7449fc18d1b7c819272))
 * remove publish schedule time ([6c5379f](https://github.com/BePing/Top-6-v2/commit/6c5379fddfb1d489246d8c0e58a13023fb57f3f0))
 
+## [2.6.0](https://github.com/BePing/Top-6-v2/compare/top-6-v2.6.0...top-6-v2.6.0) (2026-11-23)
+
+
+### Features
+
+* add error handling utilities and integrate SeasonsApi into service factory ([2684e5c](https://github.com/BePing/Top-6-v2/commit/2684e5c67f5a9746533319bcc624b2c18ad749e5))
+* enhance AI summary and Facebook posting services with improved error handling, configuration, and token tracking ([1ee2a0d](https://github.com/BePing/Top-6-v2/commit/1ee2a0d0b04e617b83b254ff0a20a2e4bc07161f))
+
+
+### Bug Fixes
+
+* convert currentSeason to string for API request parameters in DivisionsMatchesIngestionService ([0eb96e4](https://github.com/BePing/Top-6-v2/commit/0eb96e435cbc8d89c46357acca825de64e6aaf70))
+* **deps:** bump node-forge to 1.4.4 ([#34](https://github.com/BePing/Top-6-v2/issues/34)) ([787317b](https://github.com/BePing/Top-6-v2/commit/787317bfbf80dcbaeb1a45e0632dbadcf0097fa5))
+
 ## [2.6.0](https://github.com/Fllorent0D/Top-6-v2/compare/2.5.0...2.6.0) (2023-04-25)
 
 
